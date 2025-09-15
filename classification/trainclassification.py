@@ -28,9 +28,6 @@ val_test_transform = transforms.Compose([
 train_dataset = datasets.ImageFolder(os.path.join(data_dir, "train"), transform=train_transform)
 valid_dataset = datasets.ImageFolder(os.path.join(data_dir, "valid"), transform=val_test_transform)
 test_dataset = datasets.ImageFolder(os.path.join(data_dir, "test"), transform=val_test_transform)
-train_dataset = datasets.ImageFolder(os.path.join(data_dir, "train"))
-valid_dataset = datasets.ImageFolder(os.path.join(data_dir, "valid"))
-test_dataset = datasets.ImageFolder(os.path.join(data_dir, "test"))
 
 batch_size = 1
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
