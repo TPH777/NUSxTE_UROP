@@ -1,0 +1,34 @@
+As of 150925
+Dataset Filename: datasets/training_set
+Training script: classification/trainclassification.py
+
+Training data
+Epoch [1/20] Loss: 1.6130 Validation Accuracy: 44.00%
+Epoch [2/20] Loss: 1.4021 Validation Accuracy: 56.00%
+Epoch [3/20] Loss: 1.1331 Validation Accuracy: 54.00%
+Epoch [4/20] Loss: 0.9299 Validation Accuracy: 64.00%
+Epoch [5/20] Loss: 0.7893 Validation Accuracy: 62.00%
+Epoch [6/20] Loss: 0.7128 Validation Accuracy: 70.00%
+Epoch [7/20] Loss: 0.5089 Validation Accuracy: 66.00%
+Epoch [8/20] Loss: 0.3395 Validation Accuracy: 70.00%
+Epoch [9/20] Loss: 0.2137 Validation Accuracy: 74.00%
+Epoch [10/20] Loss: 0.1604 Validation Accuracy: 72.00%
+Epoch [11/20] Loss: 0.1242 Validation Accuracy: 72.00%
+Epoch [12/20] Loss: 0.1069 Validation Accuracy: 68.00%
+Epoch [13/20] Loss: 0.0931 Validation Accuracy: 72.00%
+Epoch [14/20] Loss: 0.0850 Validation Accuracy: 72.00%
+Epoch [15/20] Loss: 0.0771 Validation Accuracy: 68.00%
+Epoch [16/20] Loss: 0.0733 Validation Accuracy: 74.00%
+Epoch [17/20] Loss: 0.0686 Validation Accuracy: 72.00%
+Epoch [18/20] Loss: 0.0635 Validation Accuracy: 70.00%
+Epoch [19/20] Loss: 0.0567 Validation Accuracy: 76.00%
+Epoch [20/20] Loss: 0.0516 Validation Accuracy: 72.00%
+
+Testing data
+Accuracy for class NG - Misalign: 60.00%
+Accuracy for class NG - No solder: 70.00%
+Accuracy for class NG - Not enough solder: 65.00%
+Accuracy for class NG - Single: 95.00%
+Accuracy for class OK: 75.00%
+
+
