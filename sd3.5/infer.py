@@ -4,9 +4,12 @@ from diffusers import StableDiffusion3Pipeline
 
 print("Torch version:", torch.__version__)
 
-model_path = "/home/t/tph777/sd3.5/output/v1"
-output_dir = "/home/t/tph777/sd3.5/inferred/v1"
-prompt = "NG - Not enough solder"
+version = "v2"
+prompt = "NG - No solder"
+model_path = f"/home/t/tph777/sd3.5/output/{version}/{prompt}"
+output_dir = f"/home/t/tph777/sd3.5/inferred/{version}/{prompt}"
+
+os.makedirs(output_dir, exist_ok=True)
 
 pipe = StableDiffusion3Pipeline.from_pretrained(
     "stabilityai/stable-diffusion-3-medium-diffusers", 
