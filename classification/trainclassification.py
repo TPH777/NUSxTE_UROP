@@ -8,7 +8,7 @@ from transformers import ViTImageProcessor, ViTForImageClassification
 
 # Define dataset paths
 train_dir = "/home/t/tph777/classification/datasets/sd3.5"
-data_dir = "/home/t/tph777/training_set"
+valid_dir = "/home/t/tph777/training_set/valid"
 
 # If you want to add randomness each epoch 
 train_transform = transforms.Compose([
@@ -28,13 +28,11 @@ val_test_transform = transforms.Compose([
 ])
 
 train_dataset = datasets.ImageFolder(train_dir, transform=train_transform)
-valid_dataset = datasets.ImageFolder(os.path.join(data_dir, "valid"), transform=val_test_transform)
-test_dataset = datasets.ImageFolder(os.path.join(data_dir, "test"), transform=val_test_transform)
+valid_dataset = datasets.ImageFolder(valid_dir, transform=val_test_transform)
 
 batch_size = 1
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 valid_loader = DataLoader(valid_dataset, batch_size=batch_size)
-test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
 model_name = "google/vit-base-patch16-224-in21k"
 feature_extractor = ViTImageProcessor.from_pretrained(model_name)
