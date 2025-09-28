@@ -4,7 +4,9 @@ from diffusers import StableDiffusion3Pipeline
 
 print("Torch version:", torch.__version__)
 
-version = "v2"
+version = "v3"
+num_samples = 30
+resolution = 384
 output_root_dir = f"/home/t/tph777/sd3.5/inferred/{version}"
 model_root_dir = f"/home/t/tph777/sd3.5/output/{version}"
 
@@ -14,24 +16,21 @@ pipe = StableDiffusion3Pipeline.from_pretrained(
 )
 pipe.to("cuda")
 
-for subdir, dirs, files in os.walk(model_root_dir):
-    rel_dir = os.path.relpath(subdir, model_root_dir)
-    if rel_dir == ".":
-        continue  # Skip root dir
-    prompt = rel_dir.replace("\\", "/")  # For Windows compatibility
+for item in os.listdir(model_root_dir):
+    item_path = os.path.join(model_root_dir, item)
+    if os.path.isdir(item_path):
+        prompt = item
+        print("Processing prompt:", prompt)
+        model_path = os.path.join(model_root_dir, prompt)
+        output_dir = os.path.join(output_root_dir, prompt)
+        os.makedirs(output_dir, exist_ok=True)
 
-    model_path = os.path.join(model_root_dir, prompt)
-    output_dir = os.path.join(output_root_dir, prompt)
-    os.makedirs(output_dir, exist_ok=True)
+        pipe.load_lora_weights(
+            model_path,
+            weight_name="pytorch_lora_weights.safetensors",
+            prefix=None
+        )
 
-    pipe.load_lora_weights(
-        model_path,
-        weight_name="pytorch_lora_weights.safetensors",
-        adapter_name="custom_lora",
-        prefix=None
-    )
-    pipe.set_adapters(["custom_lora"])
-
-    for i in range(5):
-        image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5).images[0]
-        image.save(os.path.join(output_dir, f"{i}.png"))
+        for i in range(num_samples):
+            image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5, height=resolution, width=resolution).images[0]
+            image.save(os.path.join(output_dir, f"{i}.png"))
