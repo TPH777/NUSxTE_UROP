@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 from transformers import ViTImageProcessor, ViTForImageClassification
 
 # Define dataset paths
+train_dir = "/home/t/tph777/classification/datasets/sd3.5"
+valid_dir = "/home/t/tph777/training_set/valid"
 
 # If you want to add randomness each epoch 
 train_transform = transforms.Compose([
@@ -25,14 +27,12 @@ val_test_transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-train_dataset = datasets.ImageFolder(os.path.join(data_dir, "train"), transform=train_transform)
-valid_dataset = datasets.ImageFolder(os.path.join(data_dir, "valid"), transform=val_test_transform)
-test_dataset = datasets.ImageFolder(os.path.join(data_dir, "test"), transform=val_test_transform)
+train_dataset = datasets.ImageFolder(train_dir, transform=train_transform)
+valid_dataset = datasets.ImageFolder(valid_dir, transform=val_test_transform)
 
 batch_size = 1
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 valid_loader = DataLoader(valid_dataset, batch_size=batch_size)
-test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
 model_name = "google/vit-base-patch16-224-in21k"
 feature_extractor = ViTImageProcessor.from_pretrained(model_name)
@@ -86,20 +86,3 @@ for epoch in range(num_epochs):
           f"Validation Accuracy: {validation_accuracy:.2f}%")
     
     scheduler.step()
-'''
-model.load_state_dict(torch.load("best_model.pth"))
-
-model.eval()
-test_correct = 0
-test_total = 0
-with torch.no_grad():
-    for inputs, labels in test_loader:
-        inputs, labels = inputs.to(device), labels.to(device)
-        outputs = model(inputs)
-        _, predicted = torch.max(outputs.logits, 1)
-        test_total += labels.size(0)
-        test_correct += (predicted == labels).sum().item()
-
-test_accuracy = 100 * test_correct / test_total
-print(f"Test Accuracy: {test_accuracy:.2f}%")
-'''
