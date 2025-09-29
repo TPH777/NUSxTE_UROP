@@ -1,0 +1,1 @@
+0.001tv loss + vgg loss + 0.1 * KL divergence

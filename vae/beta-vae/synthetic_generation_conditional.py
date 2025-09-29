@@ -54,7 +54,7 @@ if __name__ == "__main__":
   noise_factor = 0.3
   
   dataset = datasets.ImageFolder(root=dataset_path, transform=transform)
-  dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+  dataloader = DataLoader(dataset, batch_size=1)
   synthetic_images = []
   for i in range(5):
     class_label = torch.LongTensor([i]).to(device)
