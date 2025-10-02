@@ -4,9 +4,13 @@ import os
 
 print("Torch version:", torch.__version__)
 
-model_path = "./output/sdxl-finetuned3"
-dataset_dir = "./dataset1"
-output_root_dir = "./inferred/run1"
+version = "v1"
+num_samples = 30
+resolution = 384
+
+model_path = f"./output/{version}"
+output_root_dir = f"/home/t/tph777/sdxl/inferred/{version}"
+dataset_dir = "/home/t/tph777/training_set/train"
 
 pipe = DiffusionPipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0",
@@ -31,6 +35,6 @@ for subdir, dirs, files in os.walk(dataset_dir):
     output_dir = os.path.join(output_root_dir, prompt)
     os.makedirs(output_dir, exist_ok=True)
 
-    for i in range(5):
-        image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5).images[0]
+    for i in range(num_samples):
+        image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5, height=resolution, width=resolution).images[0]
         image.save(os.path.join(output_dir, f"{i}.png"))
