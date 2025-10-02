@@ -19,3 +19,23 @@ This document contains the classification accuracy results for different image g
 - **SD3.5 Generated Images:** `sd3.5/inferred/v2`
 - **SDXL Generated Images:** `sdxl/inferred/v2`
 - **SD1.5 Generated Images:** `sd1.5/inferred/v3`
+
+## Binary Classification Results
+
+### Imbalanced Binary Dataset
+
+_Note: Data imbalanced with OK : NG ratio of 1 : 4_
+
+| Class | Original Dataset | SD3.5 + LoRA | SDXL + LoRA |
+| ----- | ---------------- | ------------ | ----------- |
+| NG    | 95.00%           | 95.00%       | 100.00%     |
+| OK    | 80.00%           | 70.00%       | 20.00%      |
+
+### Balanced Binary Dataset
+
+_Note: NG data is selected at random to match the number of OK images_
+
+| Class | Original Dataset | SD3.5 + LoRA | SDXL + LoRA |
+| ----- | ---------------- | ------------ | ----------- |
+| NG    | 85.00%           | 82.50%       | 100.00%     |
+| OK    | 95.00%           | 80.00%       | 45.00%      |
