@@ -1,0 +1,7 @@
+VGG loss + beta * KL divergence
+
+Beta annealing:
+0 epoch: 0.01
+50epoch: 0.05
+100epoch: 0.07
+150 epoch: 0.1
