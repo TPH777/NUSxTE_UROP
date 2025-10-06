@@ -1,0 +1,50 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Build outputs
+dist/
+**/dist/
+
+# Electron-builder output
+*.exe
+*.app
+*.dmg
+*.AppImage
+
+# Vite/CRA cache
+.vite/
+.cache/
+.cache-loader/
+.out/
+build/
+tmp/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Optional: lock files if you prefer
+# package-lock.json
+# yarn.lock
