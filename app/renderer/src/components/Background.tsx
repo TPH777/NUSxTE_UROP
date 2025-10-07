@@ -4,6 +4,9 @@ import logo from "../assets/Logo.png";
 function Background() {
   return (
     <div className="door-container">
+      <div className="card-container">
+        
+      </div>
       <div className="glow-dot"></div>
       <div className="logo-container">
         <img src={logo} className="logo"></img>
