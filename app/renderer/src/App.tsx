@@ -1,13 +1,15 @@
 import './App.css'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index.tsx";
+import Homepage from "./pages/Homepage.tsx";
+import Train from "./pages/Train.tsx";
 
 
 const App = () => (
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<Homepage />} />
+      <Route path="train" element={<Train />} />
     </Routes>
   </BrowserRouter>
 );

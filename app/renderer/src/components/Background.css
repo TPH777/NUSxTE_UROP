@@ -4,13 +4,14 @@
   --border: #3a3d41;
   --metal: linear-gradient(135deg, hsl(220 10% 30%), hsl(220 8% 50%), hsl(220 10% 30%));
   --steel: #5b5f64;
+  --primary-color:  #26313e;
+  background-color: var(--primary-color);
 }
 
 .door-container {
   position: relative;
   width: 100vw;
   height: 100vh;
-  background: #0b0c0e;
   overflow: hidden;
 }
 
@@ -25,12 +26,31 @@
 
 .door-top {
   top: 0;
+  animation: slide-top 3s 1 forwards;
+}
+
+@keyframes slide-top {
+  0%,15% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-300px);
+  }
 }
 
 .door-bottom {
   bottom: 0;
+  animation: slide-down 3s 1 forwards;
 }
 
+@keyframes slide-down {
+  0%,15% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(300px);
+  }
+}
 .door-details {
   position: relative;
   width: 100%;
@@ -103,6 +123,19 @@
   height: 3px;
   background-color: var(--steel);
   transform: translateY(-50%);
+  animation: disappear 3s 1 forwards;
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .logo-container {
