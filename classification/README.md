@@ -128,16 +128,16 @@ _Note: NG data is selected at random to match the number of OK images_
 
 - 15 test images for each class
 
-| Class                  | Original                                   | SDXL + LoRA (Old prompt) | SDXL + LoRA (New prompt)               |
-| ---------------------- | ------------------------------------------ | ------------------------ | -------------------------------------- |
-| <CLS_Low_Solder>       | 73.33%                                     | 46.67%                   | 33.33%                                 |
-| <CLS_Misaligned_Pins>  | 33.33%                                     | 20.00%                   | 66.67%                                 |
-| <CLS_No_Solder>        | 60.00%                                     | 86.67%                   | 73.33%                                 |
-| <CLS_OK>               | 93.33%                                     | 93.33%                   | 100.00%                                |
-| <CLS_Single_Sided_Pin> | 93.33%                                     | 80.00%                   | 73.33%                                 |
-| Images                 | [Original Image](../datasets/extended_set) |                          | [Generated Image](../sdxl/inferred/v5) |
-| Inception Score        | -                                          | 2.72                     | 2.56                                   |
-| FID (Multi) Score      | -                                          | 146.38                   | 138.20                                 |
+| Class                   | Original                                   | SDXL + LoRA (Old prompt) | SDXL + LoRA (New prompt)               |
+| ----------------------- | ------------------------------------------ | ------------------------ | -------------------------------------- |
+| <CLS_Low_Solder>        | 73.33%                                     | 46.67%                   | 33.33%                                 |
+| <CLS_Misaligned_Pins>   | 33.33%                                     | 20.00%                   | 66.67%                                 |
+| <CLS_No_Solder>         | 60.00%                                     | 86.67%                   | 73.33%                                 |
+| <CLS_OK>                | 93.33%                                     | 93.33%                   | 100.00%                                |
+| <CLS_Single_Sided_Pin>  | 93.33%                                     | 80.00%                   | 73.33%                                 |
+| Images                  | [Original Image](../datasets/extended_set) |                          | [Generated Image](../sdxl/inferred/v5) |
+| Inception Score         | -                                          | 2.72                     | 2.56                                   |
+| FID (multi-class) Score | -                                          | 146.38                   | 138.20                                 |
 
 - Notes:
 
@@ -146,7 +146,7 @@ _Note: NG data is selected at random to match the number of OK images_
   - In contrast, FID compares the distribution of features (extracted by InceptionV3) between real and generated datasets, irrespective of its labels.
   - FID (multi-class) score measures how well the overall distribution of generated features matches the real data across all classes.
 
-- FID (Single Class)
+- FID (single-class)
 
 | Class                  | SDXL + LoRA (Old prompt) | SDXL + LoRA (New prompt) |
 | ---------------------- | ------------------------ | ------------------------ |
