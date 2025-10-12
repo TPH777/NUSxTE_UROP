@@ -137,3 +137,24 @@ _Note: NG data is selected at random to match the number of OK images_
 | <CLS_Single_Sided_Pin> | 93.33%                                     | 80.00%                   | 73.33%                                 |
 | Images                 | [Original Image](../datasets/extended_set) |                          | [Generated Image](../sdxl/inferred/v5) |
 | Inception Score        | -                                          | 2.72                     | 2.56                                   |
+| FID (Multi) Score      | -                                          | 146.38                   | 138.20                                 |
+
+- Notes:
+
+  - Inception score may not be a good indicator as it uses an ImageNet-trained InceptionV3 classifier, so values can be misleading for domain-specific images and should be interpreted cautiously.
+    - The higher the better.
+  - In contrast, FID compares the distribution of features (extracted by InceptionV3) between real and generated datasets, irrespective of its labels.
+  - FID (multi-class) score measures how well the overall distribution of generated features matches the real data across all classes.
+
+- FID (Single Class)
+
+| Class                  | SDXL + LoRA (Old prompt) | SDXL + LoRA (New prompt) |
+| ---------------------- | ------------------------ | ------------------------ |
+| <CLS_Low_Solder>       | 242.36                   | 234.97                   |
+| <CLS_Misaligned_Pins>  | 224.65                   | 233.76                   |
+| <CLS_No_Solder>        | 195.56                   | 179.65                   |
+| <CLS_OK>               | 177.55                   | 176.10                   |
+| <CLS_Single_Sided_Pin> | 168.57                   | 141.14                   |
+
+- Notes: FID (single-class) score can be more informative for targeted defect generation because it measures how closely generated images match each real class individually.
+  - The lower the better.
