@@ -1,0 +1,236 @@
+:root {
+  --gradient-door: linear-gradient(180deg, hsl(220 12% 18%), hsl(220 10% 25%), hsl(220 12% 18%));
+  --shadow-deep: 0 10px 40px rgba(0, 0, 0, 0.8);
+  --border: #3a3d41;
+  --metal: linear-gradient(135deg, hsl(220 10% 30%), hsl(220 8% 50%), hsl(220 10% 30%));
+  --steel: #5b5f64;
+  --primary-color:  #26313e;
+  background-color: var(--primary-color);
+}
+
+.door-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.door {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: var(--gradient-door);
+  box-shadow: var(--shadow-deep);
+}
+
+.door-top {
+  top: 0;
+  animation: slide-top 3s 1 forwards;
+}
+
+@keyframes slide-top {
+  0%,15% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-300px);
+  }
+}
+
+.door-bottom {
+  bottom: 0;
+  animation: slide-down 3s 1 forwards;
+}
+
+@keyframes slide-down {
+  0%,15% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(300px);
+  }
+}
+.door-details {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.line {
+  position: absolute;
+  background-color: var(--border);
+  opacity: 0.5;
+}
+
+.line.horizontal {
+  height: 2px;
+  left: 0;
+  right: 0;
+}
+
+.line-top {
+  top: 25%;
+}
+
+.line-bottom {
+  bottom: 25%;
+}
+
+.line.vertical {
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rivet {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--metal);
+  border: 2px solid var(--steel);
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1);
+}
+
+.rivet-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.rivet-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.rivet-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.rivet-bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.center-seam {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--steel);
+  transform: translateY(-50%);
+  animation: disappear 3s 1 forwards;
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.logo-container {
+  position: absolute;
+  z-index: 5;
+  height: 180px;
+  width: 360px;
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, -46%);
+  animation: slide-left 2s 1 forwards;
+}
+
+@keyframes slide-left {
+  0% {
+    left: 50%
+  }
+  25% {
+    left: 50%
+  }
+  100% {
+    left: 25%
+  }
+}
+
+.logo {
+  width:100%;
+  height: 100%;
+}
+
+.glow-dot {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.5) 30%, rgba(255, 140, 0, 0) 70%);;
+  box-shadow:
+    0 0 20px rgba(255, 140, 0, 0.6),
+    0 0 50px rgba(255, 140, 0, 0.4),
+    0 0 100px rgba(255, 140, 0, 0.3);
+  transform: translateY(-50%);
+  animation: move-dot 10s linear infinite;
+}
+
+@keyframes move-dot {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 12px);
+    opacity: 0;
+  }
+}
+
+.card-container {
+  position: absolute;
+  z-index: 5;
+  height: 400px;
+  width: 280px;
+  right: 25%;
+  top: 50%;
+  border-radius: 12px;
+  transform: translate(50%, -50%);
+  background-color: #3f4249;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.10),
+    0 8px 20px rgba(0, 0, 0, 0.05);
+  animation: appear 3s 1 forwards;
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 100;
+  }
+  100% {
+    opacity: 100;
+  }
+}
