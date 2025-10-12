@@ -10,7 +10,7 @@
 
 ---
 
-# Training Set Dataset Results
+# V1. Training Set Dataset Results
 
 ## Multi-Class Classification Accuracy Comparison
 
@@ -43,7 +43,7 @@ _Note: NG data is selected at random to match the number of OK images_
 | NG    | 85.00%           | 82.50%       | 100.00%     |
 | OK    | 95.00%           | 80.00%       | 45.00%      |
 
-# Extended Set Dataset Results
+# V2. Extended Set Dataset Results
 
 **Key Differences from Training Set:**
 
@@ -109,3 +109,31 @@ _Note: NG data is selected at random to match the number of OK images_
 | OK                      |   1 |  19 |
 
 - Notes: Misclassified NG images are all from the 'Not enough solder' subclass.
+
+# V2.1 Extended Set With Updated Prompt Results
+
+**Key Differences:**
+
+- Split 20 test images into 5 valid images and 15 test images, so that the training model weights is chosen based on the epochs that provide the greatest validation accuracy, separate from test datasets to prevent overfitting and improve generalisability.
+- Prompt is change to more natural language:
+  mapping = {
+  "NG - Misalign": "<CLS_Misaligned_Pins> images with pins misaligned, but no pin missing and all pins fully soldered.",
+  "NG - No solder": "<CLS_No_Solder> images with pins without any solder, but all pins present and aligned.",
+  "NG - Not enough solder": "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.",
+  "NG - Single": "<CLS_Single_Sided_Pin> images with only one side of a pin visible, and all visible pins aligned and fully soldered.",
+  "OK": "<CLS_OK> images with pins perfectly aligned and fully soldered."
+  }
+
+## Multi-Class Classification Accuracy Comparison
+
+- 15 test images for each class
+
+| Class                  | Original                                   | SDXL + LoRA (Old prompt) | SDXL + LoRA (New prompt)               |
+| ---------------------- | ------------------------------------------ | ------------------------ | -------------------------------------- |
+| <CLS_Low_Solder>       | 73.33%                                     | 46.67%                   | 33.33%                                 |
+| <CLS_Misaligned_Pins>  | 33.33%                                     | 20.00%                   | 66.67%                                 |
+| <CLS_No_Solder>        | 60.00%                                     | 86.67%                   | 73.33%                                 |
+| <CLS_OK>               | 93.33%                                     | 93.33%                   | 100.00%                                |
+| <CLS_Single_Sided_Pin> | 93.33%                                     | 80.00%                   | 73.33%                                 |
+| Images                 | [Original Image](../datasets/extended_set) |                          | [Generated Image](../sdxl/inferred/v5) |
+| Inception Score        | -                                          | 2.72                     | 2.56                                   |
