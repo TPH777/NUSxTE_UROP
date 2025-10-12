@@ -1,0 +1,83 @@
+import os
+from pathlib import Path
+
+def delete_matching_files_from_dir2(dir1, dir2, delete=False):
+    """
+    Compare two directories and delete files from dir2 that have matching names in dir1.
+    
+    Args:
+        dir1 (str): Path to first directory (files here will NOT be deleted)
+        dir2 (str): Path to second directory (matching files here WILL be deleted)
+        delete (bool): If True, actually delete files. If False, dry run mode.
+    """
+    dir1_path = Path(dir1)
+    dir2_path = Path(dir2)
+    
+    if not dir1_path.exists() or not dir2_path.exists():
+        print("One or both directories don't exist!")
+        return
+    
+    # Get all subdirectories in both directories
+    subdirs1 = {d.name for d in dir1_path.iterdir() if d.is_dir()}
+    subdirs2 = {d.name for d in dir2_path.iterdir() if d.is_dir()}
+    
+    # Find common subdirectories
+    common_subdirs = subdirs1.intersection(subdirs2)
+    
+    print(f"Source directory (NOT deleted): {dir1}")
+    print(f"Target directory (files WILL be deleted): {dir2}")
+    print(f"Found {len(common_subdirs)} common subdirectories")
+    print(f"Mode: {'ACTUAL DELETION' if delete else 'DRY RUN'}")
+    print("-" * 50)
+    
+    total_matches = 0
+    deleted_files = []
+    
+    for subdir in sorted(common_subdirs):
+        subdir1_path = dir1_path / subdir
+        subdir2_path = dir2_path / subdir
+        
+        # Get all files in both subdirectories
+        files1 = {f.name for f in subdir1_path.iterdir() if f.is_file()}
+        files2 = {f.name for f in subdir2_path.iterdir() if f.is_file()}
+        
+        # Find matching filenames
+        matching_files = files1.intersection(files2)
+        
+        if matching_files:
+            print(f"\nSubdirectory: {subdir}/")
+            print(f"Files to delete from {dir2}/{subdir}/ ({len(matching_files)}):")
+            
+            for filename in sorted(matching_files):
+                file2_path = subdir2_path / filename
+                
+                print(f"  - {filename}")
+                
+                if delete:
+                    try:
+                        # Delete only from dir2
+                        file2_path.unlink()
+                        deleted_files.append(str(file2_path))
+                        print(f"    ✓ Deleted from {dir2}/{subdir}/")
+                    except Exception as e:
+                        print(f"    ✗ Error deleting {filename}: {e}")
+                else:
+                    print(f"    Would delete: {file2_path}")
+                
+            total_matches += len(matching_files)
+        else:
+            print(f"\nSubdirectory: {subdir}/ - No matching files")
+    
+    print(f"\n{'-' * 50}")
+    if not delete:
+        print(f"Total files that would be deleted from {dir2}: {total_matches}")
+        print("\nTo actually delete the files, run with delete=True")
+    else:
+        print(f"Total files successfully deleted from {dir2}: {len(deleted_files)}")
+
+if __name__ == "__main__":
+    directory1 = "C:\\Users\\pingh\\OneDrive\\Desktop\\NUSxTE_UROP\\datasets\\extended_set\\train"  # Files here will NOT be deleted
+    directory2 = "C:\\Users\\pingh\\OneDrive\\Desktop\\NUSxTE_UROP\\datasets\\extended_set\\test"   # Matching files here WILL be deleted
+    
+    print("=== DRY RUN MODE ===")
+    delete_matching_files_from_dir2(directory1, directory2, delete=False)
