@@ -1,0 +1,112 @@
+.table-input {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.table-input__table {
+	width: 100%;
+	border-collapse: collapse;
+
+}
+
+.table-input__table th,
+.table-input__table td {
+	padding: 0.75rem;
+	border: 1px solid #e2e8f0;
+	text-align: left;
+	vertical-align: top;
+}
+
+.table-input__file-cell {
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+.table-input__count {
+	position: relative;
+	width: 5rem;
+	font-weight: 600;
+	text-align: center;
+	padding-bottom: 2rem;
+}
+
+.table-input__count-number {
+	display: inline-block;
+	width: 100%;
+}
+
+.table-input__text {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #cbd5e1;
+	border-radius: 4px;
+	font-size: 1rem;
+	line-height: 1.4;
+	resize: none;
+}
+
+.table-input__text:focus {
+	outline: none;
+	border-color: #0284c7;
+	box-shadow: 0 0 0 1px #0284c7;
+}
+
+.table-input__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+.table-input__add-row,
+.table-input__submit {
+	padding: 0.5rem 1rem;
+	border: none;
+	border-radius: 4px;
+	background-color: #0284c7;
+	color: #fff;
+	cursor: pointer;
+}
+
+.table-input__remove-row {
+	position: absolute;
+	bottom: 0.5rem;
+	right: 0.5rem;
+	padding: 0.25rem 0.75rem;
+	border: none;
+	border-radius: 4px;
+	background-color: #ef4444;
+	color: #fff;
+	cursor: pointer;
+}
+
+.table-input__add-row:hover {
+	background-color: #0369a1;
+}
+
+.table-input__submit {
+	background-color: #16a34a;
+}
+
+.table-input__submit:hover {
+	background-color: #15803d;
+}
+
+.table-input__add-row:disabled,
+.table-input__submit:disabled,
+.table-input__remove-row:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.table-input__status {
+	font-size: 0.9rem;
+	color: #0f172a;
+}
+
+.table-input__status--error {
+	color: #dc2626;
+}
