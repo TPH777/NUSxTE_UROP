@@ -115,14 +115,15 @@ _Note: NG data is selected at random to match the number of OK images_
 **Key Differences:**
 
 - Split 20 test images into 5 valid images and 15 test images, so that the training model weights is chosen based on the epochs that provide the greatest validation accuracy, separate from test datasets to prevent overfitting and improve generalisability.
-- Prompt is change to more natural language:
-  mapping = {
-  "NG - Misalign": "<CLS_Misaligned_Pins> images with pins misaligned, but no pin missing and all pins fully soldered.",
-  "NG - No solder": "<CLS_No_Solder> images with pins without any solder, but all pins present and aligned.",
-  "NG - Not enough solder": "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.",
-  "NG - Single": "<CLS_Single_Sided_Pin> images with only one side of a pin visible, and all visible pins aligned and fully soldered.",
-  "OK": "<CLS_OK> images with pins perfectly aligned and fully soldered."
-  }
+- Prompt is change to more natural language (Token + Description):
+
+|        Old Class label |                  Token | Description                                                                                  |
+| ---------------------: | ---------------------: | -------------------------------------------------------------------------------------------- |
+|          NG - Misalign |  <CLS_Misaligned_Pins> | Images with pins misaligned, but no pin missing and all pins fully soldered.                 |
+|         NG - No solder |        <CLS_No_Solder> | Images with pins without any solder, but all pins present and aligned.                       |
+| NG - Not enough solder |       <CLS_Low_Solder> | Images with pins that have reduced solder, but all pins present and aligned.                 |
+|            NG - Single | <CLS_Single_Sided_Pin> | Images with only one side of a pin visible, and all visible pins aligned and fully soldered. |
+|                     OK |               <CLS_OK> | Images with pins perfectly aligned and fully soldered.                                       |
 
 ## Multi-Class Classification Accuracy Comparison
 
