@@ -142,6 +142,9 @@ _Note: NG data is selected at random to match the number of OK images_
 
 - Notes:
 
+  - <CLS_Low_Solder> and <CLS_No_Solder> are predicted as either <CLS_Misaligned_Pins> or <CLS_OK>
+  - <CLS_Misaligned_Pins> is predicted as every other classes.
+  - <CLS_Single_Sided_Pin> is predicted as <CLS_No_Solder>
   - Inception score may not be a good indicator as it uses an ImageNet-trained InceptionV3 classifier, so values can be misleading for domain-specific images and should be interpreted cautiously.
     - The higher the better.
   - In contrast, FID compares the distribution of features (extracted by InceptionV3) between real and generated datasets, irrespective of its labels.
