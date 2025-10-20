@@ -162,3 +162,16 @@ _Note: NG data is selected at random to match the number of OK images_
 
 - Notes: FID (single-class) score can be more informative for targeted defect generation because it measures how closely generated images match each real class individually.
   - The lower the better.
+
+# Other insights
+
+## Data augmentation
+
+- Augmentations (especially heavy spatial or photometric augmentations) applied to training images of generative models, like SDXL, can reappear in generated outputs (e.g., rotated or noisy generated images), reducing realism.
+- Thus, avoid it, only minimal color/brightness augmentations may be acceptable.
+
+## Hyperparameter tuning
+
+- There is no universally optimal configuration.
+- In the toolkit, the user thus have to personally tune the hyperparameter or a systematic search can be introduced to automate the process.
+  - E.g. Systematic search (grid, random, or Bayesian) over learning rate, training steps, and batch size, then select the model with the best fid score.
