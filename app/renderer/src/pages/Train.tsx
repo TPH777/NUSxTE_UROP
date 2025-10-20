@@ -1,9 +1,10 @@
 import "./Train.css";
+import FileInput from "../components/TableInput"
 
 function Train() {
   return (
-    <div>
-    </div>
+    <FileInput>
+    </FileInput>
   )
 }
 

@@ -118,14 +118,24 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         }
     };
 
-    // useEffect(() => {
-    //     if (!fs || !nodePath) {
-    //         setErrorMessage("File system APIs are unavailable.")
-    //         return;
-    //     }
+    useEffect(() => {
+        if (!fs || !nodePath) {
+            setErrorMessage("File system APIs are unavailable")
+            return;
+        }
 
-    //     const loadExistingRows
-    // })
+        const loadExisitingRows = async () => {
+            try {
+                const baseDir = window.process?.cwd?.() ?? ".";
+                const imagesDir = nodePath.join(baseDir, "images")
+            } catch (error) {
+                console.error("Faled to load images", error);
+                setErrorMessage(error instanceof Error ? error.message : "Failed to load images")
+            }
+        }
+    }, []);
+        
+    
 
     return (
         <div className="table-input">
