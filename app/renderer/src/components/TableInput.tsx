@@ -18,16 +18,25 @@ type FsLike = {
     copyFile: (source: string, destination: string) => Promise<void>;
     writeFile: (destination: string, data: Uint8Array) => Promise<void>;
     rm: (path: string, options: {recursive: boolean; force: boolean}) => Promise<void>;
-    readdir: (
-        path: string,
-        options?: {withFileTypes?: boolean}
-    ) => Promise<Array<{ name: string; isDirectory(): boolean}>>;
+    readdir: {
+        (path: string): Promise<string[]>
+        (path: string,
+            options?: {withFileTypes?: boolean}):  Promise<Array<{ name: string; isDirectory(): boolean}>>;
+    }
 };
 
 type PathLike = {
     join: (...segments: string[]) => string;
 };
 
+type FileSource = 'disk' | 'user' | 'unknown';
+
+function getFileSource(file: File): FileSource {
+    const path = getFilePath(file);
+    if (path) return 'disk';
+    if (typeof file.arrayBuffer === 'function') return 'user';
+    return 'unknown';
+}
 function TableInput({ initialRows = 1 }: TableInputProps) {
     const [rows, setRows] = useState<TableRow[]>(() => (
         Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
@@ -90,24 +99,83 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 const safeClassName = sanitizePathSegment(row.className.trim());
                 const classDir = nodePath.join(baseDir, "images", safeClassName);
 
-                await fs.rm(classDir, {recursive: true, force: true});
                 await fs.mkdir(classDir, { recursive: true });
+
+                let existingFiles: string[] = [];
+                try {
+                    existingFiles = await fs.readdir(classDir);
+                } catch (error) {
+                    existingFiles = [];
+                }
+                
+                //set of files that the user wants to keep
+                const desiredFiles = new Set(row.files.map(f => f.name));
+
+                // delete files that not on user list
+                for (const existingFile of existingFiles) {
+                    if (!desiredFiles.has(existingFile)) {
+                        const fileToDelete = nodePath.join(classDir, existingFile);
+                        await fs.rm(fileToDelete, {recursive: false, force: true});
+                        console.log(`Deleted: ${existingFile}`);
+                    }
+                }
+
+                // Add or update files from user list
 
                 for (const file of row.files) {
                     const sourcePath = getFilePath(file);
                     const destinationPath = nodePath.join(classDir, file.name);
+                    const source = getFileSource(file);
 
-                    if (sourcePath) {
-                        if (sourcePath !== destinationPath) {
-                            await fs.copyFile(sourcePath, destinationPath);
-                        }
-                    } else {
-                        const fileBuffer = new Uint8Array(await file.arrayBuffer());
-                        await fs.writeFile(destinationPath, fileBuffer);
+                    //skip if alr saved
+                    if ((file as any)._savedToDisk && existingFiles.includes(file.name)) {
+                        console.log(`Skipping ${file.name} -- already saved`);
+                        savedFiles += 1;
+                        continue;
                     }
-                    savedFiles += 1;
+                    switch (source) {
+                        case 'disk':
+                            //alr on disk, copy if diff location
+                            if (sourcePath && sourcePath !== destinationPath) {
+                                await fs.copyFile(sourcePath, destinationPath)
+                            }
+                            savedFiles += 1;
+                            break;
+                        
+                        case 'user':
+                            // file user js selected
+                            const fileBuffer = new Uint8Array(await file.arrayBuffer());
+                            await fs.writeFile(destinationPath, fileBuffer);
+                            savedFiles += 1
+                            break;
+
+                        case 'unknown':
+                            console.warn(`Skipping unknown file: ${file.name}`);
+                            break;
+                    }
                 }
             }
+
+            // delete class folder that user remove
+            const imagesDir = nodePath.join(baseDir, "images");
+
+            try {
+                const existingClassDirs = await fs.readdir(imagesDir, {withFileTypes: true});
+                const currentClassNames = new Set(
+                    rows.map(row => sanitizePathSegment(row.className.trim())).filter(name => name)
+                );
+
+                for (const entry of existingClassDirs) {
+                    if (entry.isDirectory() && !currentClassNames.has(entry.name)) {
+                        const dirToDelete = nodePath.join(imagesDir, entry.name);
+                        await fs.rm(dirToDelete, {recursive: true, force: true});
+                        console.log(`Deleted class folder: ${entry.name}`);
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not clean up removed class folders:", error);
+            }
+
 
             setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images directory.`);
         } catch (error) {
@@ -128,11 +196,45 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             try {
                 const baseDir = window.process?.cwd?.() ?? ".";
                 const imagesDir = nodePath.join(baseDir, "images")
+
+                const entries = await fs.readdir(imagesDir, {withFileTypes: true});
+
+                const loadedRows = [];
+                let nextId = 0;
+
+                for (const entry of entries) {
+                    if(!entry.isDirectory()) continue;
+
+                    const className = entry.name;
+                    const classDir = nodePath.join(imagesDir, className);
+                    const filenames = await fs.readdir(classDir);
+
+                    const filesForRow = [];
+
+                    for (const filename of filenames) {
+                        filesForRow.push({
+                            name: filename,
+                        } as unknown as File);
+                    }
+
+                    loadedRows.push({
+                        id: nextId++,
+                        className,
+                        files: filesForRow,
+                    });
+                }
+
+                setRows(loadedRows.length > 0 ? loadedRows : [
+                    { id: 0, className: "", files: [],}
+                ]);
+
             } catch (error) {
                 console.error("Faled to load images", error);
                 setErrorMessage(error instanceof Error ? error.message : "Failed to load images")
             }
-        }
+        };
+
+        loadExisitingRows();
     }, []);
         
     
@@ -162,7 +264,9 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                                     />
                                 </td>
                                 <td className="table-input__file-cell">
-                                    <FileInput onFilesChange={(files) => updateRowFiles(row.id, files)} />
+                                    <FileInput 
+                                        initialFiles={row.files}
+                                        onFilesChange={(files) => updateRowFiles(row.id, files)} />
                                 </td>
                                 <td className="table-input__count">
                                     <span className="table-input__count-number">{row.files.length}</span>

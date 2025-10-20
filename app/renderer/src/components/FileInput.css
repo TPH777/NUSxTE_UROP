@@ -69,6 +69,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 200px;
+    font-size: smaller;
 }
 
 .file-input__meta {
