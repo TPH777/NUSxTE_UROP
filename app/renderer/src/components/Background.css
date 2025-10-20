@@ -26,20 +26,26 @@
 
 .door-top {
   top: 0;
-  animation: slide-top 3s 1 forwards;
 }
 
-@keyframes slide-top {
+.slide-up {
+  animation: slide-up 3s 1 forwards;
+}
+
+@keyframes slide-up {
   0%,15% {
     transform: translateY(0px);
   }
   100% {
-    transform: translateY(-300px);
+    transform: translateY(-320px);
   }
 }
 
 .door-bottom {
   bottom: 0;
+}
+
+.slide-down {
   animation: slide-down 3s 1 forwards;
 }
 
@@ -48,7 +54,7 @@
     transform: translateY(0px);
   }
   100% {
-    transform: translateY(300px);
+    transform: translateY(320px);
   }
 }
 .door-details {
@@ -123,19 +129,6 @@
   height: 3px;
   background-color: var(--steel);
   transform: translateY(-50%);
-  animation: disappear 3s 1 forwards;
-}
-
-@keyframes disappear {
-  0% {
-    opacity: 1;
-  }
-  25% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
 }
 
 .logo-container {
@@ -205,6 +198,9 @@
 
 .card-container {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   z-index: 5;
   height: 400px;
   width: 280px;
@@ -233,4 +229,67 @@
   100% {
     opacity: 100;
   }
+}
+
+.disappear {
+  animation: disappear 3s 1 forwards;
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.text-input {
+  padding: 10px 15px;
+  margin: 5px 25px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 16px;
+  border: 0px;
+  background-color: #5b5f64;
+  transition: all 0.2s ease;
+}
+
+.text-input:focus {
+  box-shadow: 0 0 3px rgba(139, 141, 142, 0.5);
+}
+
+.font-orange {
+  color: rgb(217, 146, 13);
+}
+
+.font-off-white {
+  color: rgb(198, 198, 198);
+}
+
+.font-white {
+  color: white;
+}
+
+.large-font {
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.small-font {
+  font-size: 12px;
+}
+
+.no-margin {
+  margin: 0;
+}
+
+.button {
+  border: 0;
+  background-color: rgb(194, 126, 0);
+  margin: 10px 25px;
 }
