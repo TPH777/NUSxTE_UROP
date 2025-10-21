@@ -2,6 +2,8 @@ import "./TableInput.css";
 import type { ChangeEvent } from "react";
 import { useMemo, useState, useEffect } from "react";
 import { FileInput } from "./FileInput";
+import { AdvanceConfigPanel } from "./AdvanceConfigPanel";
+import configSchema from "../utils/default-config-schema.json";
 
 type TableRow = {
     id: number;
@@ -37,6 +39,14 @@ function getFileSource(file: File): FileSource {
     if (typeof file.arrayBuffer === 'function') return 'user';
     return 'unknown';
 }
+
+function getConfigDefault(key: string): number {
+    for (const section of Object.values(configSchema)) {
+        const field = (section as any).fields.find((f: any) => f.key === key);
+        if (field) return field.default;
+    }
+    return 0;
+}
 function TableInput({ initialRows = 1 }: TableInputProps) {
     const [rows, setRows] = useState<TableRow[]>(() => (
         Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
@@ -47,10 +57,10 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
 
     // train test valid split
-    const [trainRatio, setTrainRatio] = useState(0.7);
-    const [testRatio, setTestRatio] = useState(0.2);
-    const [validRatio, setValidRatio] = useState(0.1);
-    const [randomSeed, setRandomSeed] = useState(88);
+    const [trainRatio, setTrainRatio] = useState(getConfigDefault('trainRatio'));
+    const [testRatio, setTestRatio] = useState(getConfigDefault('testRatio'));
+    const [validRatio, setValidRatio] = useState(getConfigDefault('validRatio'));
+    const [randomSeed, setRandomSeed] = useState(getConfigDefault('randomSeed'));
 
     const totalFiles = useMemo(() => rows.reduce((sum, row) => sum + row.files.length, 0), [rows]);
 
@@ -370,6 +380,15 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
             {statusMessage && <p className="table-input__status">{statusMessage}</p>}
             {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
+
+            <AdvanceConfigPanel
+                onConfigChange={(config) => {
+                    setTrainRatio(config.trainRatio ?? getConfigDefault('trainRatio'));
+                    setTestRatio(config.testRatio ?? getConfigDefault('testRatio'));
+                    setValidRatio(config.validRatio ?? getConfigDefault('validRatio'));
+                    setRandomSeed(config.randomSeed ?? getConfigDefault('randomSeed'));
+                }}
+            />
         </div>
     );
 }
@@ -403,7 +422,7 @@ function getFileSplit(
 
     const prng = splitmix32(hash);
     const value = prng();
-    
+
     console.log(`Created random value ${value}`)
     if (value < trainRatio) return 'train';
     if (value < trainRatio + testRatio) return 'test';
