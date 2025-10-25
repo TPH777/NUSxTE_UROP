@@ -2,6 +2,8 @@ import "./TableInput.css";
 import type { ChangeEvent } from "react";
 import { useMemo, useState, useEffect } from "react";
 import { FileInput } from "./FileInput";
+import { AdvanceConfigPanel } from "./AdvanceConfigPanel";
+import configSchema from "../utils/default-config-schema.json";
 
 type TableRow = {
     id: number;
@@ -18,16 +20,33 @@ type FsLike = {
     copyFile: (source: string, destination: string) => Promise<void>;
     writeFile: (destination: string, data: Uint8Array) => Promise<void>;
     rm: (path: string, options: {recursive: boolean; force: boolean}) => Promise<void>;
-    readdir: (
-        path: string,
-        options?: {withFileTypes?: boolean}
-    ) => Promise<Array<{ name: string; isDirectory(): boolean}>>;
+    readdir: {
+        (path: string): Promise<string[]>
+        (path: string,
+            options?: {withFileTypes?: boolean}):  Promise<Array<{ name: string; isDirectory(): boolean}>>;
+    }
 };
 
 type PathLike = {
     join: (...segments: string[]) => string;
 };
 
+type FileSource = 'disk' | 'user' | 'unknown';
+
+function getFileSource(file: File): FileSource {
+    const path = getFilePath(file);
+    if (path) return 'disk';
+    if (typeof file.arrayBuffer === 'function') return 'user';
+    return 'unknown';
+}
+
+function getConfigDefault(key: string): number {
+    for (const section of Object.values(configSchema)) {
+        const field = (section as any).fields.find((f: any) => f.key === key);
+        if (field) return field.default;
+    }
+    return 0;
+}
 function TableInput({ initialRows = 1 }: TableInputProps) {
     const [rows, setRows] = useState<TableRow[]>(() => (
         Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
@@ -35,6 +54,13 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+
+    // train test valid split
+    const [trainRatio, setTrainRatio] = useState(getConfigDefault('trainRatio'));
+    const [testRatio, setTestRatio] = useState(getConfigDefault('testRatio'));
+    const [validRatio, setValidRatio] = useState(getConfigDefault('validRatio'));
+    const [randomSeed, setRandomSeed] = useState(getConfigDefault('randomSeed'));
 
     const totalFiles = useMemo(() => rows.reduce((sum, row) => sum + row.files.length, 0), [rows]);
 
@@ -90,26 +116,122 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 const safeClassName = sanitizePathSegment(row.className.trim());
                 const classDir = nodePath.join(baseDir, "images", safeClassName);
 
-                await fs.rm(classDir, {recursive: true, force: true});
                 await fs.mkdir(classDir, { recursive: true });
+
+                let existingFiles: string[] = [];
+                try {
+                    existingFiles = await fs.readdir(classDir);
+                } catch (error) {
+                    existingFiles = [];
+                }
+                
+                //set of files that the user wants to keep
+                const desiredFiles = new Set(row.files.map(f => f.name));
+
+                // delete files that not on user list
+                for (const existingFile of existingFiles) {
+                    if (!desiredFiles.has(existingFile)) {
+                        const fileToDelete = nodePath.join(classDir, existingFile);
+                        await fs.rm(fileToDelete, {recursive: false, force: true});
+                        console.log(`Deleted: ${existingFile}`);
+                    }
+                }
+
+                // Add or update files from user list
 
                 for (const file of row.files) {
                     const sourcePath = getFilePath(file);
                     const destinationPath = nodePath.join(classDir, file.name);
+                    const source = getFileSource(file);
 
-                    if (sourcePath) {
-                        if (sourcePath !== destinationPath) {
-                            await fs.copyFile(sourcePath, destinationPath);
-                        }
-                    } else {
-                        const fileBuffer = new Uint8Array(await file.arrayBuffer());
-                        await fs.writeFile(destinationPath, fileBuffer);
+                    //skip if alr saved
+                    if ((file as any)._savedToDisk && existingFiles.includes(file.name)) {
+                        console.log(`Skipping ${file.name} -- already saved`);
+                        savedFiles += 1;
+                        continue;
                     }
-                    savedFiles += 1;
+                    switch (source) {
+                        case 'disk':
+                            //alr on disk, copy if diff location
+                            if (sourcePath && sourcePath !== destinationPath) {
+                                await fs.copyFile(sourcePath, destinationPath)
+                            }
+                            savedFiles += 1;
+                            break;
+                        
+                        case 'user':
+                            // file user js selected
+                            const fileBuffer = new Uint8Array(await file.arrayBuffer());
+                            await fs.writeFile(destinationPath, fileBuffer);
+                            savedFiles += 1
+                            break;
+
+                        case 'unknown':
+                            console.warn(`Skipping unknown file: ${file.name}`);
+                            break;
+                    }
                 }
             }
 
-            setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images directory.`);
+            // delete class folder that user remove
+            const imagesDir = nodePath.join(baseDir, "images");
+
+            try {
+                const existingClassDirs = await fs.readdir(imagesDir, {withFileTypes: true});
+                const currentClassNames = new Set(
+                    rows.map(row => sanitizePathSegment(row.className.trim())).filter(name => name)
+                );
+
+                for (const entry of existingClassDirs) {
+                    if (entry.isDirectory() && !currentClassNames.has(entry.name)) {
+                        const dirToDelete = nodePath.join(imagesDir, entry.name);
+                        await fs.rm(dirToDelete, {recursive: true, force: true});
+                        console.log(`Deleted class folder: ${entry.name}`);
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not clean up removed class folders:", error);
+            }
+            setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images/ and created dataset splits directory.`);
+
+            const datasetDir = nodePath.join(baseDir, "dataset");
+
+            // clean out old dataset directory
+            try {
+                await fs.rm(datasetDir, { recursive: true, force: true});
+            } catch (error) {
+                //directory not exist
+            }
+
+            // new dataset structure
+            for (const split of ['train', 'test', 'valid']) {
+                for (const row of rowsWithFiles) {
+                    const safeClassName = sanitizePathSegment(row.className.trim());
+                    const splitDir = nodePath.join(datasetDir, split, safeClassName);
+                    await fs.mkdir(splitDir, {recursive: true});
+                }
+            }
+
+            // copy files to their assigned splits
+            for (const row of rowsWithFiles) {
+                const safeClassName = sanitizePathSegment(row.className.trim());
+
+                for (const file of row.files) {
+                    const split = getFileSplit(file.name, randomSeed, trainRatio, testRatio);
+                    console.log(`File: ${file.name} -> Split: ${split} (seed: ${randomSeed})`);
+                    const sourcePath = nodePath.join(baseDir, "images", safeClassName, file.name);
+                    const destPath = nodePath.join(datasetDir, split, safeClassName, file.name);
+
+                    try {
+                        await fs.copyFile(sourcePath, destPath);
+                        console.log(`Copied ${file.name} to ${split}/${safeClassName}/`);
+                    } catch (error) {
+                        console.error(`Failed to copy ${file.name} to ${split}:`, error);
+                    }
+                }
+            }
+            console.log("Dataset splits created successfully")
+
         } catch (error) {
             console.error("Failed to save files", error);
             setErrorMessage(error instanceof Error ? error.message : "Failed to save files.");
@@ -118,14 +240,76 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         }
     };
 
-    // useEffect(() => {
-    //     if (!fs || !nodePath) {
-    //         setErrorMessage("File system APIs are unavailable.")
-    //         return;
-    //     }
+    useEffect(() => {
+        if (!fs || !nodePath) return;
 
-    //     const loadExistingRows
-    // })
+        const ensureImagesDir = async () => {
+            try {
+                const baseDir = window.process?.cwd?.() ?? ".";
+                const imagesDir = nodePath.join(baseDir, "images");
+                await fs.mkdir(imagesDir, {recursive: true});
+                console.log("images directory ensured");
+            } catch (error) {
+                console.error("Failed to create images directory:", error);
+            }
+        };
+
+        ensureImagesDir();
+    }, []);
+
+    useEffect(() => {
+        if (!fs || !nodePath) {
+            setErrorMessage("File system APIs are unavailable")
+            return;
+        }
+
+        const loadExisitingRows = async () => {
+            try {
+                const baseDir = window.process?.cwd?.() ?? ".";
+                const imagesDir = nodePath.join(baseDir, "images")
+
+                const entries = await fs.readdir(imagesDir, {withFileTypes: true});
+
+                const loadedRows = [];
+                let nextId = 0;
+
+                for (const entry of entries) {
+                    if(!entry.isDirectory()) continue;
+
+                    const className = entry.name;
+                    const classDir = nodePath.join(imagesDir, className);
+                    const filenames = await fs.readdir(classDir);
+
+                    const filesForRow = [];
+
+                    for (const filename of filenames) {
+                        filesForRow.push({
+                            name: filename,
+                        } as unknown as File);
+                    }
+
+                    loadedRows.push({
+                        id: nextId++,
+                        className,
+                        files: filesForRow,
+                    });
+                }
+
+                setRows(loadedRows.length > 0 ? loadedRows : [
+                    { id: 0, className: "", files: [],}
+                ]);
+
+            } catch (error) {
+                console.error("Faled to load images", error);
+                setErrorMessage(error instanceof Error ? error.message : "Failed to load images")
+            }
+        };
+
+        loadExisitingRows();
+    }, []);
+        
+    
+
 
     return (
         <div className="table-input">
@@ -152,7 +336,9 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                                     />
                                 </td>
                                 <td className="table-input__file-cell">
-                                    <FileInput onFilesChange={(files) => updateRowFiles(row.id, files)} />
+                                    <FileInput 
+                                        initialFiles={row.files}
+                                        onFilesChange={(files) => updateRowFiles(row.id, files)} />
                                 </td>
                                 <td className="table-input__count">
                                     <span className="table-input__count-number">{row.files.length}</span>
@@ -194,11 +380,68 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
             {statusMessage && <p className="table-input__status">{statusMessage}</p>}
             {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
+
+            <AdvanceConfigPanel
+                onConfigChange={(config) => {
+                    setTrainRatio(config.trainRatio ?? getConfigDefault('trainRatio'));
+                    setTestRatio(config.testRatio ?? getConfigDefault('testRatio'));
+                    setValidRatio(config.validRatio ?? getConfigDefault('validRatio'));
+                    setRandomSeed(config.randomSeed ?? getConfigDefault('randomSeed'));
+                }}
+            />
         </div>
     );
 }
 
 export default TableInput;
+
+function seededRandom(seed: number): () => number {
+    let state = seed;
+    return () => {
+        const BIG_MODULUS = 4294967296;
+        const BIG_CONSTANT = 1013904223;
+        const BIG_FACTOR = 1664525;
+        state = (state * BIG_FACTOR + BIG_CONSTANT) % BIG_MODULUS;
+        return state / BIG_MODULUS;
+    }
+}
+
+function getFileSplit(
+    fileName: string,
+    seed: number,
+    trainRatio: number,
+    testRatio: number,
+): 'train' | 'test' | 'valid' {
+    // create hash from filename + seed
+    let hash = seed;
+    for (let i = 0; i < fileName.length; i ++) {
+        const char = fileName.charCodeAt(i);
+        hash = ((hash << 5 ) - hash) + char;
+        hash = hash & hash;
+    }
+
+    const prng = splitmix32(hash);
+    const value = prng();
+
+    console.log(`Created random value ${value}`)
+    if (value < trainRatio) return 'train';
+    if (value < trainRatio + testRatio) return 'test';
+    return 'valid';
+
+}
+
+// pseudo random number generator by MurmurHash3, Mulberry32
+function splitmix32(a: number) {
+    return function() {
+        a |= 0;
+        a = a + 0x9e3779b9 | 0;
+        let t = a ^ a >>> 16;
+        t = Math.imul(t, 0x21f0aaad);
+        t = t ^ t >>> 15;
+        t = Math.imul(t, 0x735a2d97);
+        return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
+    }
+}
 
 function autoResize(element: HTMLTextAreaElement | null) {
     if (!element) {

@@ -6,9 +6,10 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false,
     webPreferences: {
-      nodeIntegration: true, // Be cautious with this in production
-      contextIsolation: false // Be cautious with this in production
+      nodeIntegration: true,
+      contextIsolation: false
     }
   });
 

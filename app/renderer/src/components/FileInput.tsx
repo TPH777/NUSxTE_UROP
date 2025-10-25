@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./FileInput.css";
 
 const STATUS_IDLE = 0;
@@ -9,12 +9,17 @@ type FileInputProps = {
     accept?: string;
     multiple?: boolean;
     onFilesChange?: (files: File[]) => void;
+    initialFiles?: File[];
 };
 
-export function FileInput({ accept = "*", multiple = true, onFilesChange }: FileInputProps) {
-    const [files, setFiles] = useState<File[]>([]);
+export function FileInput({ accept = "*", multiple = true, onFilesChange, initialFiles = [] }: FileInputProps) {
+    const [files, setFiles] = useState<File[]>(initialFiles);
     const [status, setStatus] = useState(STATUS_IDLE);
     const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        setFiles(initialFiles);
+    }, [initialFiles]);
 
     const handleFileSelection = (event: ChangeEvent<HTMLInputElement>) => {
         const selected = event.target.files;
@@ -98,7 +103,7 @@ export function FileInput({ accept = "*", multiple = true, onFilesChange }: File
                     </li>
                 );
                 })}
-                {status === STATUS_IDLE && <li className="file-input__placeholder">No files selected yet</li>}
+                {files.length === 0 && <li className="file-input__placeholder">No files selected yet</li>}
             </div>
         </div>
     );
