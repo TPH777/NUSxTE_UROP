@@ -13,7 +13,7 @@ interface StageProviderProps {
 }
 
 const StageProvider: React.FC<StageProviderProps> = ({children}) => {
-  const [currentStage, setCurrentStage] = useState<number>(0);
+  const [currentStage, setCurrentStage] = useState<number>(3);
 
   return (
     <StageContext.Provider value={{ currentStage, setCurrentStage}}>

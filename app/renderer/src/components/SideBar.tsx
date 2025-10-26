@@ -3,7 +3,7 @@ import BarContainer from "./BarContainer";
 
 function SideBar() {
 
-  const stages = ["Setup", "Training", "Complete"];
+  const stages = ["Setup", "Training", "Generation", "Complete"];
 
   return(
     <div className="sidebar-container">

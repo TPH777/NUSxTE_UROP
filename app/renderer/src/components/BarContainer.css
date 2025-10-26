@@ -10,10 +10,6 @@
   justify-content: center;
 }
 
-.completed:hover {
-  cursor: pointer;
-}
-
 .stageFont {
   color: rgb(220, 176, 93);
   font-weight: 350;  

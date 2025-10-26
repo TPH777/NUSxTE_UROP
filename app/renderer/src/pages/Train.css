@@ -6,9 +6,18 @@
   grid-template-columns: 3fr 7fr;
 }
 
-.file-input-wrapper {
+.input-wrapper {
   display: flex;
   justify-content: center;
+  height: auto;
+  width: 98%;
+  margin: 10px 0;
+  background-color: rgba(31, 42, 57);
+  border-radius: 10px;
+}
+
+.complete-wrapper {
+  width: 100%;
 }
 
 .sidebar-wrapper {
