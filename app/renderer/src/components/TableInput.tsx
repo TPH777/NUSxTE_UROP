@@ -2,6 +2,8 @@ import "./TableInput.css";
 import type { ChangeEvent } from "react";
 import { useMemo, useState, useEffect } from "react";
 import { FileInput } from "./FileInput";
+import { AdvanceConfigPanel } from "./AdvanceConfigPanel";
+import configSchema from "../utils/default-config-schema.json";
 
 type TableRow = {
     id: number;
@@ -37,6 +39,14 @@ function getFileSource(file: File): FileSource {
     if (typeof file.arrayBuffer === 'function') return 'user';
     return 'unknown';
 }
+
+function getConfigDefault(key: string): number {
+    for (const section of Object.values(configSchema)) {
+        const field = (section as any).fields.find((f: any) => f.key === key);
+        if (field) return field.default;
+    }
+    return 0;
+}
 function TableInput({ initialRows = 1 }: TableInputProps) {
     const [rows, setRows] = useState<TableRow[]>(() => (
         Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
@@ -44,6 +54,13 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+
+    // train test valid split
+    const [trainRatio, setTrainRatio] = useState(getConfigDefault('trainRatio'));
+    const [testRatio, setTestRatio] = useState(getConfigDefault('testRatio'));
+    const [validRatio, setValidRatio] = useState(getConfigDefault('validRatio'));
+    const [randomSeed, setRandomSeed] = useState(getConfigDefault('randomSeed'));
 
     const totalFiles = useMemo(() => rows.reduce((sum, row) => sum + row.files.length, 0), [rows]);
 
@@ -175,9 +192,46 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             } catch (error) {
                 console.warn("Could not clean up removed class folders:", error);
             }
+            setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images/ and created dataset splits directory.`);
 
+            const datasetDir = nodePath.join(baseDir, "dataset");
 
-            setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images directory.`);
+            // clean out old dataset directory
+            try {
+                await fs.rm(datasetDir, { recursive: true, force: true});
+            } catch (error) {
+                //directory not exist
+            }
+
+            // new dataset structure
+            for (const split of ['train', 'test', 'valid']) {
+                for (const row of rowsWithFiles) {
+                    const safeClassName = sanitizePathSegment(row.className.trim());
+                    const splitDir = nodePath.join(datasetDir, split, safeClassName);
+                    await fs.mkdir(splitDir, {recursive: true});
+                }
+            }
+
+            // copy files to their assigned splits
+            for (const row of rowsWithFiles) {
+                const safeClassName = sanitizePathSegment(row.className.trim());
+
+                for (const file of row.files) {
+                    const split = getFileSplit(file.name, randomSeed, trainRatio, testRatio);
+                    console.log(`File: ${file.name} -> Split: ${split} (seed: ${randomSeed})`);
+                    const sourcePath = nodePath.join(baseDir, "images", safeClassName, file.name);
+                    const destPath = nodePath.join(datasetDir, split, safeClassName, file.name);
+
+                    try {
+                        await fs.copyFile(sourcePath, destPath);
+                        console.log(`Copied ${file.name} to ${split}/${safeClassName}/`);
+                    } catch (error) {
+                        console.error(`Failed to copy ${file.name} to ${split}:`, error);
+                    }
+                }
+            }
+            console.log("Dataset splits created successfully")
+
         } catch (error) {
             console.error("Failed to save files", error);
             setErrorMessage(error instanceof Error ? error.message : "Failed to save files.");
@@ -185,6 +239,23 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             setIsSaving(false);
         }
     };
+
+    useEffect(() => {
+        if (!fs || !nodePath) return;
+
+        const ensureImagesDir = async () => {
+            try {
+                const baseDir = window.process?.cwd?.() ?? ".";
+                const imagesDir = nodePath.join(baseDir, "images");
+                await fs.mkdir(imagesDir, {recursive: true});
+                console.log("images directory ensured");
+            } catch (error) {
+                console.error("Failed to create images directory:", error);
+            }
+        };
+
+        ensureImagesDir();
+    }, []);
 
     useEffect(() => {
         if (!fs || !nodePath) {
@@ -238,6 +309,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     }, []);
         
     
+
 
     return (
       <div className="table-input-wrapper">
@@ -309,12 +381,69 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
             {statusMessage && <p className="table-input__status">{statusMessage}</p>}
             {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
+
+            <AdvanceConfigPanel
+                onConfigChange={(config) => {
+                    setTrainRatio(config.trainRatio ?? getConfigDefault('trainRatio'));
+                    setTestRatio(config.testRatio ?? getConfigDefault('testRatio'));
+                    setValidRatio(config.validRatio ?? getConfigDefault('validRatio'));
+                    setRandomSeed(config.randomSeed ?? getConfigDefault('randomSeed'));
+                }}
+            />
         </div>
       </div>
     );
 }
 
 export default TableInput;
+
+function seededRandom(seed: number): () => number {
+    let state = seed;
+    return () => {
+        const BIG_MODULUS = 4294967296;
+        const BIG_CONSTANT = 1013904223;
+        const BIG_FACTOR = 1664525;
+        state = (state * BIG_FACTOR + BIG_CONSTANT) % BIG_MODULUS;
+        return state / BIG_MODULUS;
+    }
+}
+
+function getFileSplit(
+    fileName: string,
+    seed: number,
+    trainRatio: number,
+    testRatio: number,
+): 'train' | 'test' | 'valid' {
+    // create hash from filename + seed
+    let hash = seed;
+    for (let i = 0; i < fileName.length; i ++) {
+        const char = fileName.charCodeAt(i);
+        hash = ((hash << 5 ) - hash) + char;
+        hash = hash & hash;
+    }
+
+    const prng = splitmix32(hash);
+    const value = prng();
+
+    console.log(`Created random value ${value}`)
+    if (value < trainRatio) return 'train';
+    if (value < trainRatio + testRatio) return 'test';
+    return 'valid';
+
+}
+
+// pseudo random number generator by MurmurHash3, Mulberry32
+function splitmix32(a: number) {
+    return function() {
+        a |= 0;
+        a = a + 0x9e3779b9 | 0;
+        let t = a ^ a >>> 16;
+        t = Math.imul(t, 0x21f0aaad);
+        t = t ^ t >>> 15;
+        t = Math.imul(t, 0x735a2d97);
+        return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
+    }
+}
 
 function autoResize(element: HTMLTextAreaElement | null) {
     if (!element) {

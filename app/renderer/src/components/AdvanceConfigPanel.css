@@ -1,0 +1,57 @@
+.advance-config-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.advance-config-panel__save-btn {
+    padding: 0.4rem 0.8rem;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: small;
+}
+
+.advance-config-panel__save-btn:hover {
+    background-color: #005a9e;
+}
+
+.advance-config-panel__section {
+    margin-bottom: 1.5rem;
+}
+
+.advance-config-panel__section:last-child {
+    margin-bottom: 0;
+}
+
+.advance-config-panel__section h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: medium;
+    color: #898484;
+    text-align: left;
+}
+
+.advanced-config-panel__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.advance-config-panel__row label {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+    font-size: small;
+    width: 100%;
+}
+
+.advance-config-panel__row label input {
+    flex-shrink: 0;
+}
+
