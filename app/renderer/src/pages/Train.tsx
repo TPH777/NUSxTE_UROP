@@ -3,6 +3,7 @@ import SideBar from "../components/SideBar"
 import FileInput from "../components/TableInput"
 
 function Train() {
+
   return (
     <div className="pagesplit">
       <div className="sidebar-wrapper">

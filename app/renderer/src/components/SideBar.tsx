@@ -8,9 +8,9 @@ function SideBar() {
   return(
     <div className="sidebar-container">
       {
-        stages.map(stage => {
-          return (<BarContainer stage={stage}/>)
-        })  
+        stages.map((stage, idx) => {
+          return (<BarContainer idx={idx} stage={stage}/>)
+        })
       }
     </div>
   )
