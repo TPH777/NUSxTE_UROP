@@ -25,6 +25,8 @@ type ConfigPanelProps = {
 
 export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
     const [config, setConfig] = useState<ConfigValues>({})
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
 
     // load config on mount
     useEffect(() => {
@@ -76,48 +78,80 @@ export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
         onConfigChange?.(newConfig);
     }
 
+    const useDefaultConfig = () => {
+        const defaults: ConfigValues = {};
+        Object.values(configSchema).forEach((section: any) => {
+            section.fields.forEach((field: FieldSchema) => {
+                defaults[field.key] = field.default;
+            })
+        });
+        setConfig(defaults);
+        onConfigChange?.(defaults);
+        console.log("Reset to default config");
+    }
+
     return (
-        <div className="advance-config-panel">
-            <div className="advance-config-panel__header">
-                <button 
-                    type="button"
-                    className="advance-config-panel__save-btn"
-                    onClick = {saveConfig}
-                >
-                    Save Config
-                </button>
+        <>
+            <div className="advance-config-panel__advanced-toggle">
+                <label>
+                    Show Advanced Configuration
+                    <input 
+                        type="checkbox"
+                        checked={showAdvanced}
+                        onChange={(e) => setShowAdvanced(e.target.checked)}
+                    />
+                </label>
             </div>
+            {showAdvanced && (
+                <div className="advance-config-panel">
+                    <div className="advance-config-panel__header">
+                        <button
+                            type="button"
+                            className="advance-config-panel__default-btn"
+                            onClick={useDefaultConfig}
+                        >
+                            Use Default Config
+                        </button>
+                        <button 
+                            type="button"
+                            className="advance-config-panel__save-btn"
+                            onClick = {saveConfig}
+                        >
+                            Save Config
+                        </button>
+                    </div> 
+            
 
-            {Object.entries(configSchema).map(([sectionKey, section]) => {
-                const typedSection = section as SectionSchema;
-                return (
-                    <div key = {sectionKey} className="advance-config-panel__section">
-                        <h4>{typedSection.label}</h4>
-                        <div className="advance-config-panel__row">
-                            {typedSection.fields.map((field) => {
-                                return (
-                                    <label key={field.key}>
-                                        {field.label}:
-                                        <input
-                                            type={field.type}
-                                            min={field.min}
-                                            max={field.max}
-                                            step={field.step}
-                                            value={config[field.key] ?? field.default}
-                                            onChange={(e) => handleChange(field.key, parseFloat(e.target.value))}
-                                            />
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )
-            })}
-
-
-        </div>
-    )
-}
+                    {Object.entries(configSchema).map(([sectionKey, section]) => {
+                        const typedSection = section as SectionSchema;
+                        return (
+                            <div key = {sectionKey} className="advance-config-panel__section">
+                                <h4>{typedSection.label}</h4>
+                                <div className="advance-config-panel__row">
+                                    {typedSection.fields.map((field) => {
+                                        return (
+                                            <label key={field.key}>
+                                                <span className="advance-config-panel__label-text">{field.label}:</span>
+                                                
+                                                <input className="advance-config-panel__input"
+                                                    type={field.type}
+                                                    min={field.min}
+                                                    max={field.max}
+                                                    step={field.step}
+                                                    value={config[field.key] ?? field.default}
+                                                    onChange={(e) => handleChange(field.key, parseFloat(e.target.value))}
+                                                    />
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
+    </>
+)};
 
 // file system declarations
 type FsLike = {

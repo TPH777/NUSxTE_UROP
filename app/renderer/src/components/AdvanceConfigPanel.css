@@ -7,7 +7,7 @@
 
 .advance-config-panel__save-btn {
     padding: 0.4rem 0.8rem;
-    background-color: #007acc;
+    background-color: #15803d;
     color: white;
     border: none;
     border-radius: 4px;
@@ -16,7 +16,21 @@
 }
 
 .advance-config-panel__save-btn:hover {
-    background-color: #005a9e;
+    background-color: #136b33;
+}
+
+.advance-config-panel__default-btn {
+    padding: 0.5rem 1rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: small;
+}
+
+.advance-config-panel__default-btn:hover {
+    background-color: #5a6268;
 }
 
 .advance-config-panel__section {
@@ -43,15 +57,49 @@
 }
 
 .advance-config-panel__row label {
-    display: flex;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 120px 1fr;
     align-items: center;
     gap: 1rem;
     font-size: small;
     width: 100%;
 }
 
-.advance-config-panel__row label input {
-    flex-shrink: 0;
+.advance-config-panel__label-text {
+    text-align: left;
+    justify-self: start;
+}
+
+.advance-config-panel__input {
+    width: 30%
+}
+
+.advance-config-panel__advanced-toggle {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.advance-config-panel__advanced-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: small;
+}
+
+.advance-config-panel__advanced-section {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
