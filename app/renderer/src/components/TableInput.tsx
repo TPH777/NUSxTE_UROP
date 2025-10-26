@@ -240,6 +240,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     
 
     return (
+      <div className="table-input-wrapper">
         <div className="table-input">
             <div className="table-input__table-wrapper">
                 <table className="table-input__table">
@@ -309,6 +310,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             {statusMessage && <p className="table-input__status">{statusMessage}</p>}
             {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
         </div>
+      </div>
     );
 }
 

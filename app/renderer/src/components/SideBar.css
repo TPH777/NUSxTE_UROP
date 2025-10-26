@@ -1,0 +1,11 @@
+.sidebar-container {
+  margin: 10px 0;
+  padding-top: 20px;
+  display: flex;
+  width: 90%;
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(31, 42, 57);
+  border-radius: 10px;
+}
