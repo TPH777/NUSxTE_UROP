@@ -1,13 +1,20 @@
 import "./BarContainer.css";
+import { useContext } from 'react';
+import { StageContext } from '../context/stageContext';
 
 type BarContainerProps = {
+  idx: number;
   stage: string;
 }
 
-function BarContainer({stage} : BarContainerProps) {
+const BarContainer : React.FC<BarContainerProps> = ({idx, stage}) => {
+
+  const context = useContext(StageContext);
+  const currentStage = context?.currentStage;
+
   return (
-    <div className="bar-container selected">
-      <p className="stageFont selected">{stage}</p>
+    <div className= {idx == currentStage ? "bar-container selected" : "bar-container"}>
+      <p className={ idx == currentStage ? "stageFront selected" : "stageFont"}>{stage}</p>
     </div>
   )
 }

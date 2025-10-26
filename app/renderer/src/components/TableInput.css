@@ -2,12 +2,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: auto;
-  width: 100%;
-  margin: 10px 0;
-  margin-right: 15px;
-  background-color: rgba(31, 42, 57);
-  border-radius: 10px;
 }
 
 .table-input {
