@@ -312,6 +312,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
 
     return (
+      <div className="table-input-wrapper">
         <div className="table-input">
             <div className="table-input__table-wrapper">
                 <table className="table-input__table">
@@ -390,6 +391,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 }}
             />
         </div>
+      </div>
     );
 }
 

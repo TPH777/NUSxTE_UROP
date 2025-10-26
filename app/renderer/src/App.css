@@ -1,6 +1,10 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 900px;
+  height: 600px;
+  margin: 0;
   text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex
 }
 

@@ -1,3 +1,9 @@
+.table-input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .table-input {
 	display: flex;
 	flex-direction: column;
@@ -17,6 +23,7 @@
 	border: 1px solid #e2e8f0;
 	text-align: left;
 	vertical-align: top;
+  color: rgb(217, 146, 13);
 }
 
 .table-input__file-cell {

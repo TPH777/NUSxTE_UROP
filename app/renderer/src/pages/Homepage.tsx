@@ -1,5 +1,4 @@
 import Background from "../components/Background";
-import Train from "./Train";
 
 function Homepage() {
   return (
