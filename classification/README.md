@@ -200,6 +200,33 @@ _Note: NG data is selected at random to match the number of OK images_
 | <CLS_OK>               | 176.10        | 166.77          |
 | <CLS_Single_Sided_Pin> | 141.14        | 138.74          |
 
+## Learned Perceptual Image Patch Similarity (LPIPS)
+
+- It measures the similarity of a generated image with the set of real images (sdxl training images).
+- The final score given to that generated image is the score with its closest neighbbour in the real dataset.
+- It can be used to filter out generated image that is far from reality.
+  - Methodology: Generate double the number of image (from 50 to 100), then remove half of the worst scored ones (50), leaving the best half for the training of the classifier.
+
+| Class                   | Original                                   | Individual LoRA                        | Individual LoRA with LPIPS Filter      |
+| ----------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------- |
+| <CLS_Low_Solder>        | 73.33%                                     |                                        | 13.33%                                 |
+| <CLS_Misaligned_Pins>   | 33.33%                                     | 40.00%                                 | 26.67%                                 |
+| <CLS_No_Solder>         | 60.00%                                     | 93.33%                                 | 73.33%                                 |
+| <CLS_OK>                | 93.33%                                     | 100.00%                                | 100.00%                                |
+| <CLS_Single_Sided_Pin>  | 93.33%                                     | 86.67%                                 | 86.67%                                 |
+| Images                  | [Original Image](../datasets/extended_set) | [Generated Image](../sdxl/inferred/v6) | [Generated Image](../sdxl/inferred/v7) |
+| FID (multi-class) Score | -                                          | 137.51                                 | 137.52                                 |
+
+- Confusion Matrix
+
+| Predicted →<br>Actual ↓ | <CLS_Low_Solder> | <CLS_Misaligned_Pins> | <CLS_No_Solder> | <CLS_OK> | <CLS_Single_Sided_Pin> |
+| ----------------------- | ---------------- | --------------------- | --------------- | -------- | ---------------------- |
+| <CLS_Low_Solder>        | 2                | 5                     | 0               | 8        | 0                      |
+| <CLS_Misaligned_Pins>   | 2                | 4                     | 3               | 5        | 1                      |
+| <CLS_No_Solder>         | 0                | 2                     | 11              | 2        | 0                      |
+| <CLS_OK>                | 0                | 0                     | 0               | 15       | 0                      |
+| <CLS_Single_Sided_Pin>  | 1                | 0                     | 1               | 0        | 13                     |
+
 # Other insights
 
 ## Data augmentation
@@ -213,4 +240,3 @@ _Note: NG data is selected at random to match the number of OK images_
 - This applies to individual LoRA training also, different classes might need different hyperparameters to optimise results.
 - In the toolkit, the user thus have to personally tune the hyperparameter or a systematic search can be introduced to automate the process.
   - E.g. Systematic search (grid, random, or Bayesian) over learning rate, training steps, and batch size, then select the model with the best fid score.
-  - Learned Perceptual Image Patch Similarity (LPIPS) could also be used to compare the generated image with the set of real images. If it is below a certain threshold, the image may be discarded and another image could be generated, so to filter out noisy or unrealistic image.
