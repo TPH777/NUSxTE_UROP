@@ -209,7 +209,7 @@ _Note: NG data is selected at random to match the number of OK images_
 
 | Class                   | Original                                   | Individual LoRA                        | Individual LoRA with LPIPS Filter      |
 | ----------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------- |
-| <CLS_Low_Solder>        | 73.33%                                     |                                        | 13.33%                                 |
+| <CLS_Low_Solder>        | 73.33%                                     | 33.33%                                 | 13.33%                                 |
 | <CLS_Misaligned_Pins>   | 33.33%                                     | 40.00%                                 | 26.67%                                 |
 | <CLS_No_Solder>         | 60.00%                                     | 93.33%                                 | 73.33%                                 |
 | <CLS_OK>                | 93.33%                                     | 100.00%                                | 100.00%                                |
