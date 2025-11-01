@@ -11,7 +11,7 @@ def generate_metadata_jsonl(root_dir):
         prompt = rel_dir.replace("\\", "/")  # Handle Windows paths
 
         for file in files:
-            if file.lower().endswith('.jpg', '.jpeg', '.png', '.webp'):
+            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
                 relative_path = os.path.join(prompt, file).replace("\\", "/")
                 entry = {
                     "file_name": relative_path,
