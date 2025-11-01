@@ -5,24 +5,25 @@ import os
 def generate(
     name: str,
     num_samples: int,
-    classes: list[str],  
+    prompt: str,  
     resolution: int,                         # Default: 512
     num_inference_steps: int,                # Default: 50
     guidance_scale: float                    # Default: 7.5
 ):
     # ==== Initialisation ====
     # Constants
-    TRAINED_MODEL = f"../train/output/{name}"
-    LOG_FILE = os.path.join(GENERATED_DIR, f"generate.log")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    TRAINED_MODEL = f"{BASE_DIR}/../train/output/{name}/{prompt.replace(' ', '_')}/"
 
     # Output directory
-    GENERATED_DIR = f"generated/{name}"
-    os.makedirs(GENERATED_DIR, exist_ok=True)
+    OUTPUT_DIR = f"{BASE_DIR}/output/{name}/{prompt.replace(' ', '_')}"
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    LOG_FILE = os.path.join(OUTPUT_DIR, f"generate.log")
 
     # ==== Load pipeline and LoRA weights ====
     with open(LOG_FILE, "w") as f:
         try:
-            f.write("Loading pipeline...\n")
+            f.write("Loading pipeline\n")
 
             pipe = DiffusionPipeline.from_pretrained(
                 "stabilityai/stable-diffusion-xl-base-1.0",
@@ -30,7 +31,7 @@ def generate(
             )
             pipe.to("cuda")
 
-            f.write("Loading LoRA weights...\n")
+            f.write("Loading LoRA weights\n")
 
             pipe.load_lora_weights(
                 TRAINED_MODEL,
@@ -40,27 +41,20 @@ def generate(
             )
             pipe.set_adapters(["custom_lora"])
 
-            # ==== Generate images for each class ====
-            for prompt in classes:
-                output_dir = os.path.join(GENERATED_DIR, prompt)
-                os.makedirs(output_dir, exist_ok=True)
+            # ==== Generate images ====
+            for i in range(num_samples):
+                image = pipe(
+                    prompt,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    height=resolution,
+                    width=resolution
+                ).images[0]
 
-                f.write(f"Generating for prompt: {prompt}\n")
+                img_path = os.path.join(OUTPUT_DIR, f"{i}.png")
+                image.save(img_path)
+                f.write(f"Saved: {img_path}\n")
 
-                for i in range(num_samples):
-                    image = pipe(
-                        prompt,
-                        num_inference_steps=num_inference_steps,
-                        guidance_scale=guidance_scale,
-                        height=resolution,
-                        width=resolution
-                    ).images[0]
-
-                    img_path = os.path.join(output_dir, f"{i}.png")
-                    image.save(img_path)
-                    f.write(f"Saved: {img_path}\n")
-
-            print(f"\n✅ Generation complete! Images saved to: {GENERATED_DIR}\n")
             f.write("✅ Generation complete.\n")
 
         except Exception as e:
