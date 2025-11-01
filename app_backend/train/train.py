@@ -5,6 +5,7 @@ import sys
 
 def train_model(
     name: str,
+    prompt: str,
     dataset_path: str,              
     batch_size: int,                # Default: 4  
     learning_rate: float,           # Default: 1e-4
@@ -20,7 +21,7 @@ def train_model(
     ACCELERATE_CONFIG = f"{BASE_DIR}/accelerate_config.yaml"
 
     # Output directory
-    OUTPUT_DIR = f"{BASE_DIR}/output/{name}"
+    OUTPUT_DIR = f"{BASE_DIR}/output/{name}/{prompt.replace(' ', '_')}"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     LOG_FILE = os.path.join(OUTPUT_DIR, f"train.log")
 
@@ -46,12 +47,12 @@ def train_model(
     if memory_efficient:
         cmd.append("--enable_xformers_memory_efficient_attention")
 
-    # ==== Run and stream output (capture only stderr) ====
-    with open(LOG_FILE, "w", encoding="utf-8") as f:
-        # stdout is inherited (prints to terminal), stderr is captured
+    # ==== Run and stream stderr to logfile ====
+    with open(LOG_FILE, "w", encoding="utf-8", buffering=1) as f:
         process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE, text=True)
         for line in process.stderr:
             # print stderr live to the terminal's stderr and save to log
             print(line, end="", file=sys.stderr)
             f.write(line)
+            f.flush()
         process.wait()
