@@ -3,7 +3,7 @@ import os
 import numpy as np
 from PIL import Image
 import torch
-import lpips  # Make sure to 'pip install lpips'
+import lpips
 
 # --- Model and Device Setup ---
 # Load the LPIPS model once on import

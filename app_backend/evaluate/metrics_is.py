@@ -1,10 +1,8 @@
-# metrics_is.py
 import numpy as np
 import tensorflow as tf
 from scipy.stats import entropy
 
-# Import helpers from the FID module to avoid code duplication
-from metrics_fid import load_images_from_directory, preprocess_images
+from evaluate.util import load_images_from_directory, preprocess_images
 
 def compute_inception_score(directory_path, inception_model, batch_size=32):
     """ Computes the Inception Score for images in a directory """

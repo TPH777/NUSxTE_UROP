@@ -5,14 +5,22 @@ import tensorflow as tf
 import logging
 
 # Import the specific metric functions
-from metrics_fid import compute_overall_fid, compute_all_class_fids
-from metrics_is import compute_inception_score
-from metrics_lpips import compute_class_lpips
+from evaluate.metrics_fid import compute_overall_fid, compute_all_class_fids
+from evaluate.metrics_is import compute_inception_score
+from evaluate.metrics_lpips import compute_class_lpips
 
 def run_evaluation(name, real_images_path, generated_images_path):
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    LOG_FILE = f"{BASE_DIR}/{name}/evaluate.log"
+    log_dir = os.path.dirname(LOG_FILE)
+    os.makedirs(log_dir, exist_ok=True)
     
-    # --- 1. Setup Logging ---
-    log_file_path = f"{name}.log"
+    METRICS_JSON = f"{BASE_DIR}/{name}/metrics.json"
+    json_dir = os.path.dirname(METRICS_JSON)
+    os.makedirs(json_dir, exist_ok=True)
+
+    # --- 1. Setup Logging ---    
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
         
@@ -20,13 +28,13 @@ def run_evaluation(name, real_images_path, generated_images_path):
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler(log_file_path, mode='w')
+            logging.FileHandler(LOG_FILE, mode='w')
         ]
     )
 
     logging.info(f"--- Starting Evaluation Run: {name} ---")
 
-    OUTPUT_JSON_PATH = f"{name}.json"
+    
     all_metrics = {
         "inputs": {
             "real_path": real_images_path,
@@ -93,7 +101,7 @@ def run_evaluation(name, real_images_path, generated_images_path):
 
     # --- 4. Save Results to JSON ---
     try:
-        with open(OUTPUT_JSON_PATH, 'w') as f:
+        with open(METRICS_JSON, 'w') as f:
             json.dump(all_metrics, f, indent=4)
     except Exception as e:
         logging.error(f"Error saving JSON file: {e}")
