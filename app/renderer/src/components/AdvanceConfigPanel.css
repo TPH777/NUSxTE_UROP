@@ -74,6 +74,11 @@
     width: 30%
 }
 
+.advance-config-panel__row label input[type="checkbox"] {
+    margin-right: auto;
+    width: auto;
+}
+
 .advance-config-panel__advanced-toggle {
     margin-bottom: 1rem;
     padding-bottom: 1rem;

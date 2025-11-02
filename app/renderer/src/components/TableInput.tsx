@@ -11,6 +11,7 @@ type TableRow = {
     id: number;
     className: string;
     files: File[];
+    config?: Record<string, number | boolean>;
 };
 
 type TableInputProps = {
@@ -61,11 +62,16 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 
-    // train test valid split
-    const [trainRatio, setTrainRatio] = useState(getConfigDefault('trainRatio'));
-    const [testRatio, setTestRatio] = useState(getConfigDefault('testRatio'));
-    const [validRatio, setValidRatio] = useState(getConfigDefault('validRatio'));
-    const [randomSeed, setRandomSeed] = useState(getConfigDefault('randomSeed'));
+    // set configs
+    const [config, setConfig] = useState<Record<string, number | boolean>>(() => {
+        const defaults: Record<string, number | boolean> = {};
+        for (const section of Object.values(configSchema)) {
+            (section as any).fields.forEach((field: any) => {
+                defaults[field.key] = field.default;
+            });
+        }
+        return defaults;
+    })
 
     const totalFiles = useMemo(() => rows.reduce((sum, row) => sum + row.files.length, 0), [rows]);
 
@@ -98,13 +104,61 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     };
 
     const handleTrain = async () => {
-        stageContext?.setCurrentStage(1);
-        stageContext?.setFurthestStage(1);
-        setStatusMessage("training started!");
+        if (!fs || !nodePath) {
+            setErrorMessage("File system APIs are unavailable in this environment.");
+            return;
+        }
+
+        const rowsWithFiles = rows.filter((row) => row.className.trim() && row.files.length > 0);
+        if (rowsWithFiles.length === 0) {
+            setErrorMessage("Nothing to train. Add a class name and at least one file before training.");
+            return;
+        } 
+
+        try {
+            const baseDir = window.process?.cwd?.() ?? ".";
+
+            // Generate training queue JSON
+            const trainingQueue = rowsWithFiles.map((row) => {
+                const className = sanitizePathSegment(row.className.trim());
+
+                const trainingConfig: Record<string, any> = {
+                    name: className,
+                    prompt: "",
+                    dataset_path: `./dataset/train/${className}`,
+                };
+                
+                // for each row, add training param 
+                for (const [key, value] of Object.entries(config)) {
+                    // only include training params, not split ratios
+                    if (!key.includes('Ratio') && !key.includes('split')) {
+                        trainingConfig[key] = value;
+                    }
+                }
+                
+                return trainingConfig;
+            });
+
+            // save to json
+            const queuePath = nodePath.join(baseDir, "training-queue.json");
+            const jsonString = JSON.stringify(trainingQueue, null, 2);
+            const jsonBuffer = new TextEncoder().encode(jsonString);
+            await fs.writeFile(queuePath, jsonBuffer);
+
+            console.log("Training queue saved:", trainingQueue);
+        
+            stageContext?.setCurrentStage(1);
+            stageContext?.setFurthestStage(1);
+            setStatusMessage(`Training started! ${trainingQueue.length} class(es) queued.`);
+
+        } catch(error) {
+            console.error("Failed to create training queue:", error);
+            setErrorMessage(error instanceof Error ? error.message : "Failed to start training.")
+        }
 
     }
 
-    const handleSubmit = async () => {
+    const handleSavePhotos = async () => {
         if (!fs || !nodePath) {
             setErrorMessage("File system APIs are unavailable in this environment.");
             return;
@@ -229,7 +283,12 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 const safeClassName = sanitizePathSegment(row.className.trim());
 
                 for (const file of row.files) {
-                    const split = getFileSplit(file.name, randomSeed, trainRatio, testRatio);
+                    const split = getFileSplit(
+                        file.name,
+                        config.splitRandomSeed as number,
+                        config.trainRatio as number,
+                        config.testRatio as number
+                    );
                     console.log(`File: ${file.name} -> Split: ${split} (seed: ${randomSeed})`);
                     const sourcePath = nodePath.join(baseDir, "images", safeClassName, file.name);
                     const destPath = nodePath.join(datasetDir, split, safeClassName, file.name);
@@ -384,7 +443,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 <button
                     type="button"
                     className="table-input__submit"
-                    onClick={handleSubmit}
+                    onClick={handleSavePhotos}
                     disabled={isSaving}
                 >
                     Save Photos
@@ -403,12 +462,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
 
             <AdvanceConfigPanel
-                onConfigChange={(config) => {
-                    setTrainRatio(config.trainRatio ?? getConfigDefault('trainRatio'));
-                    setTestRatio(config.testRatio ?? getConfigDefault('testRatio'));
-                    setValidRatio(config.validRatio ?? getConfigDefault('validRatio'));
-                    setRandomSeed(config.randomSeed ?? getConfigDefault('randomSeed'));
-                }}
+                onConfigChange={setConfig}
             />
         </div>
       </div>

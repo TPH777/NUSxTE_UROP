@@ -2,7 +2,7 @@ import "./AdvanceConfigPanel.css";
 import {useState, useEffect} from "react";
 import configSchema from "../utils/default-config-schema.json";
 
-type ConfigValues = Record<string, number>;
+type ConfigValues = Record<string, number | boolean>;
 
 type FieldSchema = {
     key: string;
@@ -11,7 +11,7 @@ type FieldSchema = {
     min?: number;
     max?: number;
     step?: number;
-    default: number;
+    default: number | boolean;
 };
 
 type SectionSchema = {
@@ -72,7 +72,7 @@ export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
         }
     };
 
-    const handleChange = (key: string, value: number) => {
+    const handleChange = (key: string, value: number | boolean) => {
         const newConfig = {...config, [key]: value};
         setConfig(newConfig);
         onConfigChange?.(newConfig);
@@ -132,15 +132,24 @@ export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
                                         return (
                                             <label key={field.key}>
                                                 <span className="advance-config-panel__label-text">{field.label}:</span>
-                                                
-                                                <input className="advance-config-panel__input"
-                                                    type={field.type}
-                                                    min={field.min}
-                                                    max={field.max}
-                                                    step={field.step}
-                                                    value={config[field.key] ?? field.default}
-                                                    onChange={(e) => handleChange(field.key, parseFloat(e.target.value))}
+                                                {field.type === 'checkbox' ? (
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={config[field.key] as boolean ?? field.default as boolean}
+                                                        onChange={(e) => handleChange(field.key, e.target.checked)}
+                                                    
                                                     />
+
+                                                ) : (
+                                                    <input className="advance-config-panel__input"
+                                                        type={field.type}
+                                                        min={field.min}
+                                                        max={field.max}
+                                                        step={field.step}
+                                                        value={config[field.key] as number ?? field.default as number} 
+                                                        onChange={(e) => handleChange(field.key, parseFloat(e.target.value))}
+                                                    />
+                                                )}
                                             </label>
                                         );
                                     })}
