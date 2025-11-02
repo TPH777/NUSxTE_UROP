@@ -1,32 +1,24 @@
-[
-  {
-    "name": "NG-Misalign",
-    "prompt": "",
-    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-Misalign",
-    "batch_size": 4,
-    "learning_rate": 0.001,
-    "epochs": 10,
-    "resolution": 512,
-    "memory_efficient": false
-  },
-  {
-    "name": "OK",
-    "prompt": "",
-    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/OK",
-    "batch_size": 4,
-    "learning_rate": 0.001,
-    "epochs": 10,
-    "resolution": 512,
-    "memory_efficient": false
-  },
-  {
-    "name": "NG-No Solder",
-    "prompt": "",
-    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-No Solder",
-    "batch_size": 4,
-    "learning_rate": 0.001,
-    "epochs": 10,
-    "resolution": 512,
-    "memory_efficient": false
-  }
-]
+{
+  "train": [
+    {
+      "name": "sdfsdf",
+      "prompt": "<sdfsdf>",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\sdfsdf",
+      "batch_size": 4,
+      "learning_rate": 0.001,
+      "epochs": 10,
+      "resolution": 512,
+      "memory_efficient": false
+    }
+  ],
+  "generate": [
+    {
+      "name": "sdfsdf",
+      "num_samples": 10,
+      "prompt": "",
+      "resolution": 512,
+      "num_inference_steps": 50,
+      "guidance_scale": 7.5
+    }
+  ]
+}

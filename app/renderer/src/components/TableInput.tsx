@@ -157,10 +157,12 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
             const trainConfigs = rowsWithFiles.map((row) => {
                 const className = sanitizePathSegment(row.className.trim());
+                const noSpaces = className.replace(/\s+/g, '_');
+                const prompt = `<${noSpaces}>`;
 
                 const trainingConfig: Record<string, any> = {
                     name: className,
-                    prompt: "",
+                    prompt: prompt,
                     dataset_path: nodePath.join(
                         baseDir,
                         "dataset",
@@ -177,6 +179,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
                 return trainingConfig;
             });
+
             // generation configs
             const generateConfigs = rowsWithFiles.map((row) => {
                 const className = sanitizePathSegment(row.className.trim());
@@ -201,6 +204,9 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 train: trainConfigs,
                 generate: generateConfigs,
             };
+
+            queueContext?.addTask(trainConfigs, "train");
+            queueContext?.addTask(generateConfigs, "generate");
 
             // save to json
             const queuePath = nodePath.join(baseDir, "training-queue.json");

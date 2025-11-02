@@ -37,13 +37,15 @@ const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
     }
     const apiPath = getApiPath();
     try {
-      await fetch(`http://localhost:8000/${apiPath}`, {
+      const response = await fetch(`http://localhost:8000/${apiPath}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ params: trainingParams })
       });
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.log(error);
     }
@@ -66,7 +68,6 @@ const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
     } else if (queueType === "generate") {
       setGenerateQueue(prev => {
         const newList = [...prev, ...task];
-        sendRequest(newList[0], queueType);
         return newList;
       });
     }
