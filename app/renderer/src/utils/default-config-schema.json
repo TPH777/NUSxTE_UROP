@@ -1,84 +1,127 @@
 {
-  "splitRatios": {
-    "label": "Dataset Split Ratios",
-    "fields": [
-      {
-        "key": "trainRatio",
-        "label": "Train",
-        "type": "number",
-        "min": 0,
-        "max": 1,
-        "step": 0.05,
-        "default": 0.7
-      },
-      {
-        "key": "testRatio",
-        "label": "Test",
-        "type": "number",
-        "min": 0,
-        "max": 1,
-        "step": 0.05,
-        "default": 0.2
-      },
-      {
-        "key": "validRatio",
-        "label": "Valid",
-        "type": "number",
-        "min": 0,
-        "max": 1,
-        "step": 0.05,
-        "default": 0.1
-      },
-      {
-        "key": "splitRandomSeed",
-        "label": "Split Random Seed",
-        "type": "number",
-        "step": 1,
-        "default": 88
-      }
-    ]
-  },
-  "trainingParams": {
-    "label": "Training Parameters",
-    "fields": [
-      {
-        "key": "batch_size",
-        "label": "Batch Size",
-        "type": "number",
-        "min": 1,
-        "step": 1,
-        "default": 4
-      },
-      {
-        "key": "learning_rate",
-        "label": "Learning Rate",
-        "type": "number",
-        "min": 0,
-        "step": 0.0001,
-        "default": 0.001
-      },
-      {
-        "key": "epochs",
-        "label": "Epochs",
-        "type": "number",
-        "min": 1,
-        "step": 1,
-        "default": 10
-      },
-      {
-        "key": "resolution",
-        "label": "Resolution",
-        "type": "number",
-        "min": 1,
-        "step": 1,
-        "default": 512
-      },
-      {
-        "key": "memory_efficient",
-        "label": "Memory Efficient",
-        "type": "checkbox",
-        "default": false
-      }
-    ]
-  }
+    "splitRatios": {
+        "label": "Dataset Split Ratios",
+        "fields": [
+            {
+                "key": "trainRatio",
+                "label": "Train",
+                "type": "number",
+                "min": 0,
+                "max": 1,
+                "step": 0.05,
+                "default": 0.7
+            },
+            {
+                "key": "testRatio",
+                "label": "Test",
+                "type": "number",
+                "min": 0,
+                "max": 1,
+                "step": 0.05,
+                "default": 0.2
+            },
+            {
+                "key": "validRatio",
+                "label": "Valid",
+                "type": "number",
+                "min": 0,
+                "max": 1,
+                "step": 0.05,
+                "default": 0.1
+            },
+            {
+                "key": "splitRandomSeed",
+                "label": "Split Random Seed",
+                "type": "number",
+                "step": 1,
+                "default": 88
+            }
+        ]
+    },
+    "trainingParams": {
+        "label": "Training Parameters",
+        "fields": [
+            {
+                "key": "batch_size",
+                "label": "Batch Size",
+                "type": "number",
+                "min": 1,
+                "step": 1,
+                "default": 4
+            },
+            {
+                "key": "learning_rate",
+                "label": "Learning Rate",
+                "type": "number",
+                "min": 0,
+                "step": 0.0001,
+                "default": 0.001
+            },
+            {
+                "key": "epochs",
+                "label": "Epochs",
+                "type": "number",
+                "min": 1,
+                "step": 1,
+                "default": 10
+            },
+            {
+                "key": "resolution",
+                "label": "Resolution",
+                "type": "number",
+                "min": 1,
+                "step": 1,
+                "default": 512
+            },
+            {
+                "key": "memory_efficient",
+                "label": "Memory Efficient",
+                "type": "checkbox",
+                "default": false
+            }
+        ]
+    },
+    "generationParams": {
+        "label": "Generation Parameters",
+        "fields": [
+            {
+                "key": "num_samples",
+                "label": "Number of Samples",
+                "type": "number",
+                "min": 1,
+                "step": 1,
+                "default": 10
+            },
+            {
+                "key": "prompt",
+                "label": "Prompt",
+                "type": "text",
+                "default": ""
+            },
+            {
+                "key": "gen_resolution",
+                "label": "Generation Resolution",
+                "type": "number",
+                "min": 128,
+                "step": 64,
+                "default": 512
+            },
+            {
+                "key": "num_inference_steps",
+                "label": "Inference Steps",
+                "type": "number",
+                "min": 1,
+                "step": 1,
+                "default": 50
+            },
+            {
+                "key": "guidance_scale",
+                "label": "Guidance Scale",
+                "type": "number",
+                "min": 0,
+                "step": 0.1,
+                "default": 7.5
+            }
+        ]
+    }
 }

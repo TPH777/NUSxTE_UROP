@@ -22,25 +22,30 @@ type FsLike = {
     mkdir: (path: string, options: { recursive: boolean }) => Promise<void>;
     copyFile: (source: string, destination: string) => Promise<void>;
     writeFile: (destination: string, data: Uint8Array) => Promise<void>;
-    rm: (path: string, options: {recursive: boolean; force: boolean}) => Promise<void>;
+    rm: (
+        path: string,
+        options: { recursive: boolean; force: boolean }
+    ) => Promise<void>;
     readdir: {
-        (path: string): Promise<string[]>
-        (path: string,
-            options?: {withFileTypes?: boolean}):  Promise<Array<{ name: string; isDirectory(): boolean}>>;
-    }
+        (path: string): Promise<string[]>;
+        (
+            path: string,
+            options?: { withFileTypes?: boolean }
+        ): Promise<Array<{ name: string; isDirectory(): boolean }>>;
+    };
 };
 
 type PathLike = {
     join: (...segments: string[]) => string;
 };
 
-type FileSource = 'disk' | 'user' | 'unknown';
+type FileSource = "disk" | "user" | "unknown";
 
 function getFileSource(file: File): FileSource {
     const path = getFilePath(file);
-    if (path) return 'disk';
-    if (typeof file.arrayBuffer === 'function') return 'user';
-    return 'unknown';
+    if (path) return "disk";
+    if (typeof file.arrayBuffer === "function") return "user";
+    return "unknown";
 }
 
 function getConfigDefault(key: string): number {
@@ -54,40 +59,51 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     const stageContext = useContext(StageContext);
     const queueContext = useContext(QueueContext);
 
-    const [rows, setRows] = useState<TableRow[]>(() => (
-        Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
-    ));
+    const [rows, setRows] = useState<TableRow[]>(() =>
+        Array.from({ length: initialRows }, (_, index) => ({
+            className: "",
+            id: index,
+            files: [],
+        }))
+    );
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-
     // set configs
-    const [config, setConfig] = useState<Record<string, number | boolean>>(() => {
-        const defaults: Record<string, number | boolean> = {};
-        for (const section of Object.values(configSchema)) {
-            (section as any).fields.forEach((field: any) => {
-                defaults[field.key] = field.default;
-            });
+    const [config, setConfig] = useState<Record<string, number | boolean>>(
+        () => {
+            const defaults: Record<string, number | boolean> = {};
+            for (const section of Object.values(configSchema)) {
+                (section as any).fields.forEach((field: any) => {
+                    defaults[field.key] = field.default;
+                });
+            }
+            return defaults;
         }
-        return defaults;
-    })
+    );
 
-    const totalFiles = useMemo(() => rows.reduce((sum, row) => sum + row.files.length, 0), [rows]);
+    const totalFiles = useMemo(
+        () => rows.reduce((sum, row) => sum + row.files.length, 0),
+        [rows]
+    );
 
     const updateRowFiles = (rowId: number, files: File[]) => {
         setRows((prev) =>
-            prev.map((row) => (row.id === rowId ? { ...row, files } : row)),
+            prev.map((row) => (row.id === rowId ? { ...row, files } : row))
         );
     };
 
     const updateRowClassName = (rowId: number, className: string) => {
         setRows((prev) =>
-            prev.map((row) => (row.id === rowId ? { ...row, className } : row)),
+            prev.map((row) => (row.id === rowId ? { ...row, className } : row))
         );
     };
 
-    const handleClassNameChange = (rowId: number, event: ChangeEvent<HTMLTextAreaElement>) => {
+    const handleClassNameChange = (
+        rowId: number,
+        event: ChangeEvent<HTMLTextAreaElement>
+    ) => {
         autoResize(event.target);
         updateRowClassName(rowId, event.target.value);
     };
@@ -98,46 +114,93 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
     const addRow = () => {
         setRows((prev) => {
-            const nextId = prev.length ? Math.max(...prev.map((row) => row.id)) + 1 : 0;
+            const nextId = prev.length
+                ? Math.max(...prev.map((row) => row.id)) + 1
+                : 0;
             return [...prev, { id: nextId, className: "", files: [] }];
         });
     };
 
     const handleTrain = async () => {
         if (!fs || !nodePath) {
-            setErrorMessage("File system APIs are unavailable in this environment.");
+            setErrorMessage(
+                "File system APIs are unavailable in this environment."
+            );
             return;
         }
 
-        const rowsWithFiles = rows.filter((row) => row.className.trim() && row.files.length > 0);
+        const rowsWithFiles = rows.filter(
+            (row) => row.className.trim() && row.files.length > 0
+        );
         if (rowsWithFiles.length === 0) {
-            setErrorMessage("Nothing to train. Add a class name and at least one file before training.");
+            setErrorMessage(
+                "Nothing to train. Add a class name and at least one file before training."
+            );
             return;
-        } 
+        }
 
         try {
             const baseDir = window.process?.cwd?.() ?? ".";
 
-            // Generate training queue JSON
-            const trainingQueue = rowsWithFiles.map((row) => {
+            // generate training queue JSON
+
+            const trainingParamKeys = new Set(
+                (configSchema.trainingParams as any).fields.map(
+                    (f: any) => f.key
+                )
+            );
+            const generationParamKeys = new Set(
+                (configSchema.generationParams as any).fields.map(
+                    (f: any) => f.key
+                )
+            );
+
+            const trainConfigs = rowsWithFiles.map((row) => {
                 const className = sanitizePathSegment(row.className.trim());
 
                 const trainingConfig: Record<string, any> = {
                     name: className,
                     prompt: "",
-                    dataset_path: nodePath.join(baseDir, "dataset", "train", className),
+                    dataset_path: nodePath.join(
+                        baseDir,
+                        "dataset",
+                        "train",
+                        className
+                    ),
                 };
-                
-                // for each row, add training param 
+
                 for (const [key, value] of Object.entries(config)) {
-                    // only include training params, not split ratios
-                    if (!key.includes('Ratio') && !key.includes('split')) {
+                    if (trainingParamKeys.has(key)) {
                         trainingConfig[key] = value;
                     }
                 }
-                
+
                 return trainingConfig;
             });
+            // generation configs
+            const generateConfigs = rowsWithFiles.map((row) => {
+                const className = sanitizePathSegment(row.className.trim());
+
+                const generationConfig: Record<string, any> = {
+                    name: className,
+                };
+
+                for (const [key, value] of Object.entries(config)) {
+                    if (generationParamKeys.has(key)) {
+                        // Rename gen_resolution to resolution for Python script
+                        const outputKey =
+                            key === "gen_resolution" ? "resolution" : key;
+                        generationConfig[outputKey] = value;
+                    }
+                }
+
+                return generationConfig;
+            });
+
+            const trainingQueue = {
+                train: trainConfigs,
+                generate: generateConfigs,
+            };
 
             // save to json
             const queuePath = nodePath.join(baseDir, "training-queue.json");
@@ -146,27 +209,37 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             await fs.writeFile(queuePath, jsonBuffer);
 
             console.log("Training queue saved:", trainingQueue);
-        
+
             stageContext?.setCurrentStage(1);
             stageContext?.setFurthestStage(1);
-            setStatusMessage(`Training started! ${trainingQueue.length} class(es) queued.`);
-
-        } catch(error) {
+            setStatusMessage(
+                `Training started! ${trainConfigs.length} class(es) queued.`
+            );
+        } catch (error) {
             console.error("Failed to create training queue:", error);
-            setErrorMessage(error instanceof Error ? error.message : "Failed to start training.")
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to start training."
+            );
         }
-
-    }
+    };
 
     const handleSavePhotos = async () => {
         if (!fs || !nodePath) {
-            setErrorMessage("File system APIs are unavailable in this environment.");
+            setErrorMessage(
+                "File system APIs are unavailable in this environment."
+            );
             return;
         }
 
-        const rowsWithFiles = rows.filter((row) => row.className.trim() && row.files.length > 0);
+        const rowsWithFiles = rows.filter(
+            (row) => row.className.trim() && row.files.length > 0
+        );
         if (rowsWithFiles.length === 0) {
-            setErrorMessage("Nothing to save. Add a class name and at least one file before submitting.");
+            setErrorMessage(
+                "Nothing to save. Add a class name and at least one file before submitting."
+            );
             return;
         }
 
@@ -180,7 +253,11 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
             for (const row of rowsWithFiles) {
                 const safeClassName = sanitizePathSegment(row.className.trim());
-                const classDir = nodePath.join(baseDir, "images", safeClassName);
+                const classDir = nodePath.join(
+                    baseDir,
+                    "images",
+                    safeClassName
+                );
 
                 await fs.mkdir(classDir, { recursive: true });
 
@@ -190,15 +267,21 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 } catch (error) {
                     existingFiles = [];
                 }
-                
+
                 //set of files that the user wants to keep
-                const desiredFiles = new Set(row.files.map(f => f.name));
+                const desiredFiles = new Set(row.files.map((f) => f.name));
 
                 // delete files that not on user list
                 for (const existingFile of existingFiles) {
                     if (!desiredFiles.has(existingFile)) {
-                        const fileToDelete = nodePath.join(classDir, existingFile);
-                        await fs.rm(fileToDelete, {recursive: false, force: true});
+                        const fileToDelete = nodePath.join(
+                            classDir,
+                            existingFile
+                        );
+                        await fs.rm(fileToDelete, {
+                            recursive: false,
+                            force: true,
+                        });
                         console.log(`Deleted: ${existingFile}`);
                     }
                 }
@@ -211,28 +294,33 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                     const source = getFileSource(file);
 
                     //skip if alr saved
-                    if ((file as any)._savedToDisk && existingFiles.includes(file.name)) {
+                    if (
+                        (file as any)._savedToDisk &&
+                        existingFiles.includes(file.name)
+                    ) {
                         console.log(`Skipping ${file.name} -- already saved`);
                         savedFiles += 1;
                         continue;
                     }
                     switch (source) {
-                        case 'disk':
+                        case "disk":
                             //alr on disk, copy if diff location
                             if (sourcePath && sourcePath !== destinationPath) {
-                                await fs.copyFile(sourcePath, destinationPath)
+                                await fs.copyFile(sourcePath, destinationPath);
                             }
                             savedFiles += 1;
                             break;
-                        
-                        case 'user':
+
+                        case "user":
                             // file user js selected
-                            const fileBuffer = new Uint8Array(await file.arrayBuffer());
+                            const fileBuffer = new Uint8Array(
+                                await file.arrayBuffer()
+                            );
                             await fs.writeFile(destinationPath, fileBuffer);
-                            savedFiles += 1
+                            savedFiles += 1;
                             break;
 
-                        case 'unknown':
+                        case "unknown":
                             console.warn(`Skipping unknown file: ${file.name}`);
                             break;
                     }
@@ -243,38 +331,62 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             const imagesDir = nodePath.join(baseDir, "images");
 
             try {
-                const existingClassDirs = await fs.readdir(imagesDir, {withFileTypes: true});
+                const existingClassDirs = await fs.readdir(imagesDir, {
+                    withFileTypes: true,
+                });
                 const currentClassNames = new Set(
-                    rows.map(row => sanitizePathSegment(row.className.trim())).filter(name => name)
+                    rows
+                        .map((row) => sanitizePathSegment(row.className.trim()))
+                        .filter((name) => name)
                 );
 
                 for (const entry of existingClassDirs) {
-                    if (entry.isDirectory() && !currentClassNames.has(entry.name)) {
-                        const dirToDelete = nodePath.join(imagesDir, entry.name);
-                        await fs.rm(dirToDelete, {recursive: true, force: true});
+                    if (
+                        entry.isDirectory() &&
+                        !currentClassNames.has(entry.name)
+                    ) {
+                        const dirToDelete = nodePath.join(
+                            imagesDir,
+                            entry.name
+                        );
+                        await fs.rm(dirToDelete, {
+                            recursive: true,
+                            force: true,
+                        });
                         console.log(`Deleted class folder: ${entry.name}`);
                     }
                 }
             } catch (error) {
-                console.warn("Could not clean up removed class folders:", error);
+                console.warn(
+                    "Could not clean up removed class folders:",
+                    error
+                );
             }
-            setStatusMessage(`Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images/ and created dataset splits directory.`);
+            setStatusMessage(
+                `Saved ${savedFiles} file${savedFiles === 1 ? "" : "s"} to the images/ and created dataset splits directory.`
+            );
 
             const datasetDir = nodePath.join(baseDir, "dataset");
 
             // clean out old dataset directory
             try {
-                await fs.rm(datasetDir, { recursive: true, force: true});
+                await fs.rm(datasetDir, { recursive: true, force: true });
             } catch (error) {
                 //directory not exist
             }
 
             // new dataset structure
-            for (const split of ['train', 'test', 'valid']) {
+            for (const split of ["train", "test", "valid"]) {
                 for (const row of rowsWithFiles) {
-                    const safeClassName = sanitizePathSegment(row.className.trim());
-                    const splitDir = nodePath.join(datasetDir, split, safeClassName);
-                    await fs.mkdir(splitDir, {recursive: true});
+                    const safeClassName = sanitizePathSegment(
+                        row.className.trim()
+                    );
+                    const splitDir = nodePath.join(
+                        datasetDir,
+                        split,
+                        safeClassName
+                    );
+                    await fs.mkdir(splitDir, { recursive: true });
                 }
             }
 
@@ -289,23 +401,41 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                         config.trainRatio as number,
                         config.testRatio as number
                     );
-                    console.log(`File: ${file.name} -> Split: ${split} (seed: ${config.splitRandomSeed})`);
-                    const sourcePath = nodePath.join(baseDir, "images", safeClassName, file.name);
-                    const destPath = nodePath.join(datasetDir, split, safeClassName, file.name);
+                    console.log(
+                        `File: ${file.name} -> Split: ${split} (seed: ${config.splitRandomSeed})`
+                    );
+                    const sourcePath = nodePath.join(
+                        baseDir,
+                        "images",
+                        safeClassName,
+                        file.name
+                    );
+                    const destPath = nodePath.join(
+                        datasetDir,
+                        split,
+                        safeClassName,
+                        file.name
+                    );
 
                     try {
                         await fs.copyFile(sourcePath, destPath);
-                        console.log(`Copied ${file.name} to ${split}/${safeClassName}/`);
+                        console.log(
+                            `Copied ${file.name} to ${split}/${safeClassName}/`
+                        );
                     } catch (error) {
-                        console.error(`Failed to copy ${file.name} to ${split}:`, error);
+                        console.error(
+                            `Failed to copy ${file.name} to ${split}:`,
+                            error
+                        );
                     }
                 }
             }
-            console.log("Dataset splits created successfully")
-
+            console.log("Dataset splits created successfully");
         } catch (error) {
             console.error("Failed to save files", error);
-            setErrorMessage(error instanceof Error ? error.message : "Failed to save files.");
+            setErrorMessage(
+                error instanceof Error ? error.message : "Failed to save files."
+            );
         } finally {
             setIsSaving(false);
         }
@@ -318,7 +448,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             try {
                 const baseDir = window.process?.cwd?.() ?? ".";
                 const imagesDir = nodePath.join(baseDir, "images");
-                await fs.mkdir(imagesDir, {recursive: true});
+                await fs.mkdir(imagesDir, { recursive: true });
                 console.log("images directory ensured");
             } catch (error) {
                 console.error("Failed to create images directory:", error);
@@ -330,22 +460,24 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
     useEffect(() => {
         if (!fs || !nodePath) {
-            setErrorMessage("File system APIs are unavailable")
+            setErrorMessage("File system APIs are unavailable");
             return;
         }
 
         const loadExisitingRows = async () => {
             try {
                 const baseDir = window.process?.cwd?.() ?? ".";
-                const imagesDir = nodePath.join(baseDir, "images")
+                const imagesDir = nodePath.join(baseDir, "images");
 
-                const entries = await fs.readdir(imagesDir, {withFileTypes: true});
+                const entries = await fs.readdir(imagesDir, {
+                    withFileTypes: true,
+                });
 
                 const loadedRows = [];
                 let nextId = 0;
 
                 for (const entry of entries) {
-                    if(!entry.isDirectory()) continue;
+                    if (!entry.isDirectory()) continue;
 
                     const className = entry.name;
                     const classDir = nodePath.join(imagesDir, className);
@@ -366,106 +498,128 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                     });
                 }
 
-                setRows(loadedRows.length > 0 ? loadedRows : [
-                    { id: 0, className: "", files: [],}
-                ]);
-
+                setRows(
+                    loadedRows.length > 0
+                        ? loadedRows
+                        : [{ id: 0, className: "", files: [] }]
+                );
             } catch (error) {
                 console.error("Faled to load images", error);
-                setErrorMessage(error instanceof Error ? error.message : "Failed to load images")
+                setErrorMessage(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load images"
+                );
             }
         };
 
         loadExisitingRows();
     }, []);
-        
-    
-
 
     return (
-      <div className="table-input-wrapper">
-        <div className="table-input">
-            <div className="table-input__table-wrapper">
-                <table className="table-input__table">
-                    <thead>
-                        <tr>
-                            <th>Class Name</th>
-                            <th>Images</th>
-                            <th>Image Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((row) => (
-                            <tr key={row.id}>
-                                <td>
-                                    <textarea
-                                        ref={autoResize}
-                                        rows={1}
-                                        className="table-input__text"
-                                        value={row.className}
-                                        placeholder="Enter class"
-                                        onChange={(event) => handleClassNameChange(row.id, event)}
-                                    />
-                                </td>
-                                <td className="table-input__file-cell">
-                                    <FileInput 
-                                        initialFiles={row.files}
-                                        onFilesChange={(files) => updateRowFiles(row.id, files)} />
-                                </td>
+        <div className="table-input-wrapper">
+            <div className="table-input">
+                <div className="table-input__table-wrapper">
+                    <table className="table-input__table">
+                        <thead>
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Images</th>
+                                <th>Image Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((row) => (
+                                <tr key={row.id}>
+                                    <td>
+                                        <textarea
+                                            ref={autoResize}
+                                            rows={1}
+                                            className="table-input__text"
+                                            value={row.className}
+                                            placeholder="Enter class"
+                                            onChange={(event) =>
+                                                handleClassNameChange(
+                                                    row.id,
+                                                    event
+                                                )
+                                            }
+                                        />
+                                    </td>
+                                    <td className="table-input__file-cell">
+                                        <FileInput
+                                            initialFiles={row.files}
+                                            onFilesChange={(files) =>
+                                                updateRowFiles(row.id, files)
+                                            }
+                                        />
+                                    </td>
+                                    <td className="table-input__count">
+                                        <span className="table-input__count-number">
+                                            {row.files.length}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="table-input__remove-row"
+                                            onClick={() => removeRow(row.id)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan={2}>Total</td>
                                 <td className="table-input__count">
-                                    <span className="table-input__count-number">{row.files.length}</span>
-                                    <button
-                                        type="button"
-                                        className="table-input__remove-row"
-                                        onClick={() => removeRow(row.id)}
-                                    >
-                                        Remove
-                                    </button>
+                                    <span className="table-input__count-number">
+                                        {totalFiles}
+                                    </span>
                                 </td>
                             </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={2}>Total</td>
-                            <td className="table-input__count">
-                                <span className="table-input__count-number">{totalFiles}</span>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div className="table-input__actions">
+                    <button
+                        type="button"
+                        className="table-input__add-row"
+                        onClick={addRow}
+                    >
+                        Add row
+                    </button>
+                    <button
+                        type="button"
+                        className="table-input__submit"
+                        onClick={handleSavePhotos}
+                        disabled={isSaving}
+                    >
+                        Save Photos
+                    </button>
+                    <button
+                        type="button"
+                        className="table-input__train"
+                        onClick={handleTrain}
+                        disabled={isSaving}
+                    >
+                        Train
+                    </button>
+                </div>
+
+                {statusMessage && (
+                    <p className="table-input__status">{statusMessage}</p>
+                )}
+                {errorMessage && (
+                    <p className="table-input__status table-input__status--error">
+                        {errorMessage}
+                    </p>
+                )}
+
+                <AdvanceConfigPanel onConfigChange={setConfig} />
             </div>
-
-            <div className="table-input__actions">
-                <button type="button" className="table-input__add-row" onClick={addRow}>
-                    Add row
-                </button>
-                <button
-                    type="button"
-                    className="table-input__submit"
-                    onClick={handleSavePhotos}
-                    disabled={isSaving}
-                >
-                    Save Photos
-                </button>
-                <button
-                    type="button"
-                    className="table-input__train"
-                    onClick={handleTrain}
-                    disabled={isSaving}
-                >
-                    Train
-                </button>
-            </div>
-
-            {statusMessage && <p className="table-input__status">{statusMessage}</p>}
-            {errorMessage && <p className="table-input__status table-input__status--error">{errorMessage}</p>}
-
-            <AdvanceConfigPanel
-                onConfigChange={setConfig}
-            />
         </div>
-      </div>
     );
 }
 
@@ -479,44 +633,43 @@ function seededRandom(seed: number): () => number {
         const BIG_FACTOR = 1664525;
         state = (state * BIG_FACTOR + BIG_CONSTANT) % BIG_MODULUS;
         return state / BIG_MODULUS;
-    }
+    };
 }
 
 function getFileSplit(
     fileName: string,
     seed: number,
     trainRatio: number,
-    testRatio: number,
-): 'train' | 'test' | 'valid' {
+    testRatio: number
+): "train" | "test" | "valid" {
     // create hash from filename + seed
     let hash = seed;
-    for (let i = 0; i < fileName.length; i ++) {
+    for (let i = 0; i < fileName.length; i++) {
         const char = fileName.charCodeAt(i);
-        hash = ((hash << 5 ) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash;
     }
 
     const prng = splitmix32(hash);
     const value = prng();
 
-    console.log(`Created random value ${value}`)
-    if (value < trainRatio) return 'train';
-    if (value < trainRatio + testRatio) return 'test';
-    return 'valid';
-
+    console.log(`Created random value ${value}`);
+    if (value < trainRatio) return "train";
+    if (value < trainRatio + testRatio) return "test";
+    return "valid";
 }
 
 // pseudo random number generator by MurmurHash3, Mulberry32
 function splitmix32(a: number) {
-    return function() {
+    return function () {
         a |= 0;
-        a = a + 0x9e3779b9 | 0;
-        let t = a ^ a >>> 16;
+        a = (a + 0x9e3779b9) | 0;
+        let t = a ^ (a >>> 16);
         t = Math.imul(t, 0x21f0aaad);
-        t = t ^ t >>> 15;
+        t = t ^ (t >>> 15);
         t = Math.imul(t, 0x735a2d97);
-        return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
-    }
+        return ((t = t ^ (t >>> 15)) >>> 0) / 4294967296;
+    };
 }
 
 function autoResize(element: HTMLTextAreaElement | null) {
@@ -544,12 +697,14 @@ declare global {
     }
 }
 
-const fsModule = typeof window !== "undefined" && typeof window.require === "function"
-    ? (window.require("fs") as { promises?: FsLike })
-    : undefined;
+const fsModule =
+    typeof window !== "undefined" && typeof window.require === "function"
+        ? (window.require("fs") as { promises?: FsLike })
+        : undefined;
 
 const fs = fsModule?.promises ?? null;
 
-const nodePath = typeof window !== "undefined" && typeof window.require === "function"
-    ? (window.require("path") as PathLike)
-    : null;
+const nodePath =
+    typeof window !== "undefined" && typeof window.require === "function"
+        ? (window.require("path") as PathLike)
+        : null;

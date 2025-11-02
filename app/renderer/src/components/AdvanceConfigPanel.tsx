@@ -2,7 +2,7 @@ import "./AdvanceConfigPanel.css";
 import {useState, useEffect} from "react";
 import configSchema from "../utils/default-config-schema.json";
 
-type ConfigValues = Record<string, number | boolean>;
+type ConfigValues = Record<string, number | boolean | string>;
 
 type FieldSchema = {
     key: string;
@@ -11,7 +11,7 @@ type FieldSchema = {
     min?: number;
     max?: number;
     step?: number;
-    default: number | boolean;
+    default: number | boolean | string;
 };
 
 type SectionSchema = {
@@ -72,7 +72,7 @@ export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
         }
     };
 
-    const handleChange = (key: string, value: number | boolean) => {
+    const handleChange = (key: string, value: number | boolean | string) => {
         const newConfig = {...config, [key]: value};
         setConfig(newConfig);
         onConfigChange?.(newConfig);
@@ -139,9 +139,17 @@ export function AdvanceConfigPanel({onConfigChange}: ConfigPanelProps) {
                                                         onChange={(e) => handleChange(field.key, e.target.checked)}
                                                     
                                                     />
-
+                                                ) : field.type === 'text' ? (
+                                                    <input 
+                                                        className="advance-config-panel__input"
+                                                        type="text"
+                                                        value={config[field.key] as string ?? field.default as string}
+                                                        onChange={(e) => handleChange(field.key, e.target.value)}
+                                                        placeholder={field.label}
+                                                    />
                                                 ) : (
-                                                    <input className="advance-config-panel__input"
+                                                    <input 
+                                                        className="advance-config-panel__input"
                                                         type={field.type}
                                                         min={field.min}
                                                         max={field.max}
