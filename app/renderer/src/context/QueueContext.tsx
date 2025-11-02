@@ -16,11 +16,24 @@ interface QueueProviderProps {
   children: ReactNode;
 }
 
-
 const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
   const [queue, setQueue] = useState<any[]>([]);
   const [queueStarted, setQueueStarted] = useState(false);
   const stageContext = useContext(StageContext);
+
+  const sendTrainRequest = async (trainingParams : any) : Promise<any> => {
+    try {
+      await fetch('http://localhost:8000/new_generate_job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ params: trainingParams })
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const addTask = (task: any[]) => {
     setQueueStarted(state => {
@@ -29,9 +42,10 @@ const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
       }
       return false;
     })
+
     setQueue(prev => {
-      const newList = [...prev, ...task]
-      // calls the first train with the first param
+      const newList = [...prev, ...task];
+      sendTrainRequest(newList[0]);
       return newList;
     });
   };
@@ -44,7 +58,7 @@ const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
         stageContext?.setFurthestStage(2);
         stageContext?.setCurrentStage(2);
       } else {
-        // call the next training
+        sendTrainRequest(newQueue[0]);
       }
       return newQueue;
     });
