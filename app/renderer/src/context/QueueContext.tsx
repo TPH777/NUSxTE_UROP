@@ -3,11 +3,14 @@ import { createContext, useContext, useState } from 'react';
 import { StageContext } from './StageContext.tsx';
 
 interface QueueContextType {
-  queue: any[];
-  addTask: (task: any[]) => void;
-  taskComplete: () => void;
-  queueStarted: boolean;
-  setQueueStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  trainQueue: any[];
+  generateQueue: any[];
+  addTask: (task: any[], queueType: string) => void;
+  taskComplete: (queueType: string) => void;
+  trainQueueStarted: boolean;
+  setTrainQueueStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  generateQueueStarted: boolean;
+  setGenerateQueueStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const QueueContext = createContext<QueueContextType | undefined>(undefined);
@@ -17,13 +20,24 @@ interface QueueProviderProps {
 }
 
 const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
-  const [queue, setQueue] = useState<any[]>([]);
-  const [queueStarted, setQueueStarted] = useState(false);
+  const [trainQueue, setTrainQueue] = useState<any[]>([]);
+  const [trainQueueStarted, setTrainQueueStarted] = useState(false);
+  const [generateQueue, setGenerateQueue] = useState<any[]>([]);
+  const [generateQueueStarted, setGenerateQueueStarted] = useState(false);
   const stageContext = useContext(StageContext);
 
-  const sendTrainRequest = async (trainingParams : any) : Promise<any> => {
+  const sendRequest = async (trainingParams : any, queueType: string) : Promise<any> => {
+    const getApiPath = () => {
+      if (queueType === "generate") {
+        return "new_generate_job";
+      } else if (queueType === "train") {
+        return "new_training_job";
+      }
+      return ""
+    }
+    const apiPath = getApiPath();
     try {
-      await fetch('http://localhost:8000/new_generate_job', {
+      await fetch(`http://localhost:8000/${apiPath}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,38 +49,62 @@ const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
     }
   }
 
-  const addTask = (task: any[]) => {
-    setQueueStarted(state => {
-      if (state === false) {
-        return true;
-      }
-      return false;
-    })
+  const addTask = (task: any[], queueType: string) => {
+    if (queueType === "train") {
+      setTrainQueueStarted(state => {
+        if (state === false) {
+          return true;
+        }
+        return false;
+      })
 
-    setQueue(prev => {
-      const newList = [...prev, ...task];
-      sendTrainRequest(newList[0]);
-      return newList;
-    });
+      setTrainQueue(prev => {
+        const newList = [...prev, ...task];
+        sendRequest(newList[0], queueType);
+        return newList;
+      });
+    } else if (queueType === "generate") {
+      setGenerateQueue(prev => {
+        const newList = [...prev, ...task];
+        sendRequest(newList[0], queueType);
+        return newList;
+      });
+    }
   };
 
-  const taskComplete = () => {
-    setQueue( prev => {
-      const newQueue = prev.slice(1);
-      if (newQueue.length === 0 && queueStarted === true) {
-        setQueueStarted(false);
-        stageContext?.setFurthestStage(2);
-        stageContext?.setCurrentStage(2);
-      } else {
-        sendTrainRequest(newQueue[0]);
-      }
-      return newQueue;
-    });
-    
+  const taskComplete = (queueType:string) => {
+    if (queueType === "train") {
+      setTrainQueue( prev => {
+        const newQueue = prev.slice(1);
+        if (newQueue.length === 0 && trainQueueStarted === true) {
+          setTrainQueueStarted(false);
+          sendRequest(generateQueue[0], "generate");
+          setGenerateQueueStarted(true);
+          stageContext?.setFurthestStage(2);
+          stageContext?.setCurrentStage(2);
+        } else {
+          sendRequest(newQueue[0], queueType);
+        }
+        return newQueue;
+      });
+    } else if (queueType === "generate") {
+      setGenerateQueue( prev => {
+        const newQueue = prev.slice(1);
+        if (newQueue.length === 0 && generateQueueStarted === true) {
+          setGenerateQueueStarted(false);
+          stageContext?.setFurthestStage(3);
+          stageContext?.setCurrentStage(3);
+        } else {
+          sendRequest(newQueue[0], queueType);
+        }
+        return newQueue;
+      });
+    }
   }
 
   return (
-    <QueueContext.Provider value={{ queue, addTask, taskComplete, queueStarted, setQueueStarted }}>
+    <QueueContext.Provider value={{ trainQueue, generateQueue, addTask, taskComplete, 
+        trainQueueStarted, setTrainQueueStarted, generateQueueStarted, setGenerateQueueStarted }}>
       {children}
     </QueueContext.Provider>
   );
