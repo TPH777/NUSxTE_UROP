@@ -90,7 +90,7 @@ function ShowTraining(){
             const line = lines[i];
 
             // Parse progress line: "Steps:  83%|████████▎ | 2500/3000 [3:19:27<39:53,  4.79s/it, lr=0.0002, step_loss=0.0263]"
-            const progressMatch = line.match(/Steps:\s+(\d+)%.*?\|\s+(\d+)\/(\d+)\s+\[([^<]+)<([^,]+),\s+[\d.]+s\/it,\s+lr=([\d.]+),\s+step_loss=([\d.]+)\]/);
+            const progressMatch = line.match(/Steps:\s+(\d+)%.*?\|\s+(\d+)\/(\d+)\s+\[([^\]<]+)(?:<([^\],]+))?,\s+[\d.]+s\/it,\s+lr=([\d.eE+-]+),\s+step_loss=([\d.]+)\]/);
 
             if (progressMatch) {
                 if (recentLosses.length === 0) {
@@ -200,10 +200,6 @@ function ShowTraining(){
                             <div className="show-training__stat">
                                 <span className="show-training__stat-label">Average Loss (last {trainingState.recentLosses.length}):</span>
                                 <span className="show-training__stat-value">{trainingState.avgLoss.toFixed(4)}</span>
-                            </div>
-                            <div className="show-training__stat">
-                                <span className="show-training__stat-label">Learning Rate:</span>
-                                <span className="show-training__stat-value">{trainingState.learningRate}</span>
                             </div>
                             <div className="show-training__stat">
                                 <span className="show-training__stat-label">Last Checkpoint:</span>

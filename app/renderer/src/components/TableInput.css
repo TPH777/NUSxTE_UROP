@@ -121,7 +121,7 @@
 
 .table-input__train {
 	padding: 0.75rem 1.5rem;
-	background-color: #8212d1;
+	background-color: rgb(217, 146, 13);
 	color: white;
 	border: none;
 	border-radius: 0.365rem;
@@ -130,5 +130,5 @@
 }
 
 .table-input__train:hover {
-	background-color: #6a0eab
+	background-color: rgb(188, 127, 13)
 }
