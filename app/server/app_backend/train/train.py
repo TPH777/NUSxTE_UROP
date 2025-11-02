@@ -1,6 +1,6 @@
 import subprocess
 import os
-from train.data_prep import generate_metadata_jsonl
+from .data_prep import generate_metadata_jsonl
 import sys
 
 def train_model(

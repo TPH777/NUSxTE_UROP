@@ -8,16 +8,16 @@ import Train from "./pages/Train.tsx";
 
 
 const App: React.FC = () => (
-  <QueueProvider>
   <StageProvider>
+  <QueueProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="train" element={<Train />} />
       </Routes>
     </BrowserRouter>
-  </StageProvider>
   </QueueProvider>
+  </StageProvider>
 );
 
 export default App;

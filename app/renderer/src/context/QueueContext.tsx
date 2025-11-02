@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import { createContext, useContext, useState } from 'react';
-import { StageContext } from './StageContext';
+import { StageContext } from './StageContext.tsx';
 
 interface QueueContextType {
   queue: any[];
@@ -16,11 +16,11 @@ interface QueueProviderProps {
   children: ReactNode;
 }
 
-const stageContext = useContext(StageContext);
 
 const QueueProvider: React.FC<QueueProviderProps> = ({ children }) => {
   const [queue, setQueue] = useState<any[]>([]);
   const [queueStarted, setQueueStarted] = useState(false);
+  const stageContext = useContext(StageContext);
 
   const addTask = (task: any[]) => {
     setQueueStarted(state => {
