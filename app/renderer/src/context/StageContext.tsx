@@ -4,6 +4,8 @@ import { createContext, useState} from 'react';
 interface StageContextType {
   currentStage: number;
   setCurrentStage: React.Dispatch<React.SetStateAction<number>>;
+  furthestStage: number;
+  setFurthestStage: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const StageContext = createContext<StageContextType | undefined>(undefined);
@@ -14,9 +16,10 @@ interface StageProviderProps {
 
 const StageProvider: React.FC<StageProviderProps> = ({children}) => {
   const [currentStage, setCurrentStage] = useState<number>(3);
+  const [furthestStage, setFurthestStage] = useState<number>(3);
 
   return (
-    <StageContext.Provider value={{ currentStage, setCurrentStage}}>
+    <StageContext.Provider value={{ currentStage, setCurrentStage, furthestStage, setFurthestStage}}>
       {children}
     </StageContext.Provider>
   );

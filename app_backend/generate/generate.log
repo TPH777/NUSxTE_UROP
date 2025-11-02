@@ -1,0 +1,6 @@
+Loading pipeline
+Loading LoRA weights
+Saved: /home/t/tph777/app_backend/generate/output/my_model/<CLS_Low_Solder>_images_with_pins_that_have_reduced_solder,_but_all_pins_present_and_aligned./0.png
+Saved: /home/t/tph777/app_backend/generate/output/my_model/<CLS_Low_Solder>_images_with_pins_that_have_reduced_solder,_but_all_pins_present_and_aligned./1.png
+Saved: /home/t/tph777/app_backend/generate/output/my_model/<CLS_Low_Solder>_images_with_pins_that_have_reduced_solder,_but_all_pins_present_and_aligned./2.png
+✅ Generation complete.

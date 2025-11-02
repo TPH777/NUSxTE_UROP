@@ -163,6 +163,70 @@ _Note: NG data is selected at random to match the number of OK images_
 - Notes: FID (single-class) score can be more informative for targeted defect generation because it measures how closely generated images match each real class individually.
   - The lower the better.
 
+# V2.2 Extended Set With Individual Class Training
+
+**Key Differences:**
+
+- Instead of training a single lora model, individual models are trained for each class to improve distinction between the generated outputs.
+  - This leads to a much greater training time also.
+
+| Class                   | Original                                   | Collated LoRA                          | Individual LoRA                        |
+| ----------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------- |
+| <CLS_Low_Solder>        | 73.33%                                     | 33.33%                                 | 26.67%                                 |
+| <CLS_Misaligned_Pins>   | 33.33%                                     | 66.67%                                 | 40.00%                                 |
+| <CLS_No_Solder>         | 60.00%                                     | 73.33%                                 | 93.33%                                 |
+| <CLS_OK>                | 93.33%                                     | 100.00%                                | 100.00%                                |
+| <CLS_Single_Sided_Pin>  | 93.33%                                     | 73.33%                                 | 86.67%                                 |
+| Images                  | [Original Image](../datasets/extended_set) | [Generated Image](../sdxl/inferred/v5) | [Generated Image](../sdxl/inferred/v6) |
+| FID (multi-class) Score | -                                          | 138.20                                 | 137.51                                 |
+
+- Confusion Matrix
+
+| Predicted →<br>Actual ↓ | <CLS_Low_Solder> | <CLS_Misaligned_Pins> | <CLS_No_Solder> | <CLS_OK> | <CLS_Single_Sided_Pin> |
+| ----------------------- | ---------------- | --------------------- | --------------- | -------- | ---------------------- |
+| <CLS_Low_Solder>        | 4                | 3                     | 1               | 7        | 0                      |
+| <CLS_Misaligned_Pins>   | 2                | 6                     | 2               | 5        | 0                      |
+| <CLS_No_Solder>         | 0                | 1                     | 14              | 0        | 0                      |
+| <CLS_OK>                | 0                | 0                     | 0               | 15       | 0                      |
+| <CLS_Single_Sided_Pin>  | 1                | 0                     | 1               | 0        | 13                     |
+
+- FID (single-class)
+
+| Class                  | Collated LoRA | Individual LoRA |
+| ---------------------- | ------------- | --------------- |
+| <CLS_Low_Solder>       | 234.97        | 240.91          |
+| <CLS_Misaligned_Pins>  | 233.76        | 287.56          |
+| <CLS_No_Solder>        | 179.65        | 179.17          |
+| <CLS_OK>               | 176.10        | 166.77          |
+| <CLS_Single_Sided_Pin> | 141.14        | 138.74          |
+
+## Learned Perceptual Image Patch Similarity (LPIPS)
+
+- It measures the similarity of a generated image with the set of real images (sdxl training images).
+- The final score given to that generated image is the score with its closest neighbbour in the real dataset.
+- It can be used to filter out generated image that is far from reality.
+  - Methodology: Generate double the number of image (from 50 to 100), then remove half of the worst scored ones (50), leaving the best half for the training of the classifier.
+
+| Class                   | Original                                   | Individual LoRA                        | Individual LoRA with LPIPS Filter      |
+| ----------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------- |
+| <CLS_Low_Solder>        | 73.33%                                     | 33.33%                                 | 13.33%                                 |
+| <CLS_Misaligned_Pins>   | 33.33%                                     | 40.00%                                 | 26.67%                                 |
+| <CLS_No_Solder>         | 60.00%                                     | 93.33%                                 | 73.33%                                 |
+| <CLS_OK>                | 93.33%                                     | 100.00%                                | 100.00%                                |
+| <CLS_Single_Sided_Pin>  | 93.33%                                     | 86.67%                                 | 86.67%                                 |
+| Images                  | [Original Image](../datasets/extended_set) | [Generated Image](../sdxl/inferred/v6) | [Generated Image](../sdxl/inferred/v7) |
+| FID (multi-class) Score | -                                          | 137.51                                 | 137.52                                 |
+
+- Confusion Matrix
+
+| Predicted →<br>Actual ↓ | <CLS_Low_Solder> | <CLS_Misaligned_Pins> | <CLS_No_Solder> | <CLS_OK> | <CLS_Single_Sided_Pin> |
+| ----------------------- | ---------------- | --------------------- | --------------- | -------- | ---------------------- |
+| <CLS_Low_Solder>        | 2                | 5                     | 0               | 8        | 0                      |
+| <CLS_Misaligned_Pins>   | 2                | 4                     | 3               | 5        | 1                      |
+| <CLS_No_Solder>         | 0                | 2                     | 11              | 2        | 0                      |
+| <CLS_OK>                | 0                | 0                     | 0               | 15       | 0                      |
+| <CLS_Single_Sided_Pin>  | 1                | 0                     | 1               | 0        | 13                     |
+
 # Other insights
 
 ## Data augmentation
@@ -173,5 +237,6 @@ _Note: NG data is selected at random to match the number of OK images_
 ## Hyperparameter tuning
 
 - There is no universally optimal configuration.
+- This applies to individual LoRA training also, different classes might need different hyperparameters to optimise results.
 - In the toolkit, the user thus have to personally tune the hyperparameter or a systematic search can be introduced to automate the process.
   - E.g. Systematic search (grid, random, or Bayesian) over learning rate, training steps, and batch size, then select the model with the best fid score.
