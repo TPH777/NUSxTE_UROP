@@ -1,0 +1,32 @@
+[
+  {
+    "name": "NG-Misalign",
+    "prompt": "",
+    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-Misalign",
+    "batch_size": 4,
+    "learning_rate": 0.001,
+    "epochs": 10,
+    "resolution": 512,
+    "memory_efficient": false
+  },
+  {
+    "name": "OK",
+    "prompt": "",
+    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/OK",
+    "batch_size": 4,
+    "learning_rate": 0.001,
+    "epochs": 10,
+    "resolution": 512,
+    "memory_efficient": false
+  },
+  {
+    "name": "NG-No Solder",
+    "prompt": "",
+    "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-No Solder",
+    "batch_size": 4,
+    "learning_rate": 0.001,
+    "epochs": 10,
+    "resolution": 512,
+    "memory_efficient": false
+  }
+]

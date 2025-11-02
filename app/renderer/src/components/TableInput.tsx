@@ -125,7 +125,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 const trainingConfig: Record<string, any> = {
                     name: className,
                     prompt: "",
-                    dataset_path: `./dataset/train/${className}`,
+                    dataset_path: nodePath.join(baseDir, "dataset", "train", className),
                 };
                 
                 // for each row, add training param 
@@ -289,7 +289,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                         config.trainRatio as number,
                         config.testRatio as number
                     );
-                    console.log(`File: ${file.name} -> Split: ${split} (seed: ${randomSeed})`);
+                    console.log(`File: ${file.name} -> Split: ${split} (seed: ${config.splitRandomSeed})`);
                     const sourcePath = nodePath.join(baseDir, "images", safeClassName, file.name);
                     const destPath = nodePath.join(datasetDir, split, safeClassName, file.name);
 
