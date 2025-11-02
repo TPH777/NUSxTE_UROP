@@ -24,3 +24,7 @@ p.selected {
 div.selected {
   border: 1px solid rgb(217,146,13);
 }
+
+.clickable:hover {
+  cursor: pointer;
+}
