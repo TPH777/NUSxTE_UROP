@@ -441,6 +441,84 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         }
     };
 
+    const handleGenerate = async () => {
+        if (!fs || !nodePath) {
+            setErrorMessage(
+                "File system APIs are unavailable in this environment."
+            );
+            return;
+        }
+
+        const rowsWithFiles = rows.filter(
+            (row) => row.className.trim() && row.files.length > 0
+        );
+        if (rowsWithFiles.length === 0) {
+            setErrorMessage(
+                "Nothing to generate. Add a class name before generating."
+            );
+            return;
+        }
+
+        try {
+            const baseDir = window.process?.cwd?.() ?? ".";
+
+            // Check if trained models exist for all classes
+            const missingModels: string[] = [];
+
+            for (const row of rowsWithFiles) {
+                const className = sanitizePathSegment(row.className.trim());
+
+                // Path to trained model (matches generate.py line 16)
+                const trainedModelPath = nodePath.join(
+                    baseDir,
+                    "server",
+                    "app_backend",
+                    "train",
+                    "output",
+                    className
+                );
+
+                // Check if trained model exists
+                try {
+                    const entries = await fs.readdir(trainedModelPath);
+                    const hasWeights = entries.some(
+                        (file: string) =>
+                            file === "pytorch_lora_weights.safetensors"
+                    );
+
+                    if (!hasWeights) {
+                        missingModels.push(className);
+                    }
+                } catch (error) {
+                    // Directory doesn't exist
+                    missingModels.push(className);
+                }
+            }
+
+            // If any models are missing, show error
+            if (missingModels.length > 0) {
+                setErrorMessage(
+                    `Missing trained models for: ${missingModels.join(", ")}. Please train these classes first.`
+                );
+                return;
+            }
+
+            // All models exist, proceed to generation stage
+            setStatusMessage(
+                "All trained models found! Moving to generation stage..."
+            );
+            stageContext?.setCurrentStage(2); // Stage 2 is the Generate component
+            stageContext?.setFurthestStage(2);
+        } catch (error) {
+            console.error("Failed to check trained models:", error);
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to check trained models."
+            );
+        }
+    };
+
     useEffect(() => {
         if (!fs || !nodePath) return;
 
@@ -605,6 +683,14 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                         disabled={isSaving}
                     >
                         Train
+                    </button>
+                    <button
+                        type="button"
+                        className="table-input__generate"
+                        onClick={handleGenerate}
+                        disabled={isSaving}
+                    >
+                        Generate
                     </button>
                 </div>
 

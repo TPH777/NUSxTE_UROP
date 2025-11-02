@@ -134,3 +134,22 @@
 .table-input__train:hover {
 	background-color: rgb(188, 127, 13)
 }
+
+.table-input__generate {
+    padding: 0.75rem 1.5rem;
+    background-color: rgb(217, 95, 13);
+    color: white;
+    border: none;
+    border-radius: 0.365rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.table-input__generate:hover {
+    background-color: rgb(204, 89, 12);
+}
+
+.table-input__generate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
