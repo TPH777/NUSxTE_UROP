@@ -92,6 +92,10 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         });
     };
 
+    const handleTrain = async () => {
+        setStatusMessage("training started!");
+    }
+
     const handleSubmit = async () => {
         if (!fs || !nodePath) {
             setErrorMessage("File system APIs are unavailable in this environment.");
@@ -375,7 +379,15 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                     onClick={handleSubmit}
                     disabled={isSaving}
                 >
-                    Submit
+                    Save Photos
+                </button>
+                <button
+                    type="button"
+                    className="table-input__train"
+                    onClick={handleTrain}
+                    disabled={isSaving}
+                >
+                    Train
                 </button>
             </div>
 
