@@ -1,9 +1,11 @@
 import "./TableInput.css";
 import type { ChangeEvent } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useContext } from "react";
 import { FileInput } from "./FileInput";
 import { AdvanceConfigPanel } from "./AdvanceConfigPanel";
 import configSchema from "../utils/default-config-schema.json";
+import { StageContext } from "../context/StageContext";
+import { QueueContext } from "../context/QueueContext";
 
 type TableRow = {
     id: number;
@@ -48,6 +50,9 @@ function getConfigDefault(key: string): number {
     return 0;
 }
 function TableInput({ initialRows = 1 }: TableInputProps) {
+    const stageContext = useContext(StageContext);
+    const queueContext = useContext(QueueContext);
+
     const [rows, setRows] = useState<TableRow[]>(() => (
         Array.from({ length: initialRows }, (_, index) => ({ className: "", id: index, files: [] }))
     ));
@@ -93,7 +98,10 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
     };
 
     const handleTrain = async () => {
+        stageContext?.setCurrentStage(1);
+        stageContext?.setFurthestStage(1);
         setStatusMessage("training started!");
+
     }
 
     const handleSubmit = async () => {

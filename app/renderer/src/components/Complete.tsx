@@ -1,7 +1,7 @@
 import React from "react";
 import "./Complete.css";
 import tick from "../assets/orange-tick.png";
-import { StageContext } from "../context/stageContext";
+import { StageContext } from "../context/StageContext";
 import { useContext } from "react";
 
 const Complete: React.FC = () => {

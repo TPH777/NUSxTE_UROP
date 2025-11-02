@@ -1,6 +1,6 @@
 import "./BarContainer.css";
 import { useContext } from 'react';
-import { StageContext } from '../context/stageContext';
+import { StageContext } from '../context/StageContext';
 
 type BarContainerProps = {
   idx: number;
@@ -15,7 +15,7 @@ const BarContainer : React.FC<BarContainerProps> = ({idx, stage}) => {
 
   return (
     <div className= {idx == currentStage ? "bar-container selected" : idx <= furthestStage ? "bar-container clickable" : "bar-container"} 
-    onClick={() => {context?.setCurrentStage(idx)}}>
+    onClick={() => {if (idx <= furthestStage) context?.setCurrentStage(idx)}}>
       <p className={ idx == currentStage ? "stageFront selected" : idx <= furthestStage ? "stageFont clickable" : "stageFont"}>{stage}</p>
     </div>
   )

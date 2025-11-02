@@ -1,12 +1,14 @@
 import './App.css'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { StageProvider } from "./context/stageContext.tsx";
+import { QueueProvider } from './context/QueueContext.tsx';
+import { StageProvider } from "./context/StageContext.tsx";
 import Homepage from "./pages/Homepage.tsx";
 import Train from "./pages/Train.tsx";
 
 
 const App: React.FC = () => (
+  <QueueProvider>
   <StageProvider>
     <BrowserRouter>
       <Routes>
@@ -15,6 +17,7 @@ const App: React.FC = () => (
       </Routes>
     </BrowserRouter>
   </StageProvider>
+  </QueueProvider>
 );
 
 export default App;

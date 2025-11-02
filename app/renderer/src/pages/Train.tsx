@@ -3,7 +3,7 @@ import SideBar from "../components/SideBar"
 import FileInput from "../components/TableInput"
 import Complete from "../components/Complete";
 import ShowTraining from "../components/ShowTraining";
-import { StageContext } from "../context/stageContext";
+import { StageContext } from "../context/StageContext";
 import { useContext } from "react";
 
 function Train() {
