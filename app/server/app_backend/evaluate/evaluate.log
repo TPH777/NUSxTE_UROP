@@ -1,0 +1,6 @@
+2025-11-01 18:48:54,003 [INFO] --- Starting Evaluation Run: my_model ---
+2025-11-01 18:48:58,189 [INFO] --- Stage 1: Calculating Inception Score ---
+2025-11-01 18:49:06,081 [INFO] --- Stage 2: Calculating Overall FID ---
+2025-11-01 18:49:33,497 [INFO] --- Stage 3: Calculating Per-Class FID ---
+2025-11-01 18:49:50,116 [INFO] --- Stage 4: Calculating LPIPS Scores ---
+2025-11-01 18:49:50,925 [INFO] --- Complete Evaluation For 'my_model' ---

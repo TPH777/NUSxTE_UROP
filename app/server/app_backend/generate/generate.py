@@ -1,6 +1,7 @@
 from diffusers import DiffusionPipeline
 import torch
 import os
+import datetime
 
 def generate(
     name: str,
@@ -21,18 +22,26 @@ def generate(
     LOG_FILE = os.path.join(OUTPUT_DIR, f"generate.log")
 
     # ==== Load pipeline and LoRA weights ====
-    with open(LOG_FILE, "w") as f:
+    # open with explicit encoding and line buffering, and flush after each write to ensure live logging
+    with open(LOG_FILE, "w", encoding="utf-8", buffering=1) as f:
+        def _ts():
+            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3]
+        
+        def log(msg: str):
+            f.write(f"{_ts()} [INFO] --- {msg}\n")
+            f.flush()
+        
         try:
-            f.write("Loading pipeline\n")
-
+            log("Loading pipeline")
+ 
             pipe = DiffusionPipeline.from_pretrained(
                 "stabilityai/stable-diffusion-xl-base-1.0",
                 torch_dtype=torch.float16
             )
             pipe.to("cuda")
-
-            f.write("Loading LoRA weights\n")
-
+ 
+            log("Loading LoRA weights")
+ 
             pipe.load_lora_weights(
                 TRAINED_MODEL,
                 weight_name="pytorch_lora_weights.safetensors",
@@ -40,7 +49,7 @@ def generate(
                 prefix=None
             )
             pipe.set_adapters(["custom_lora"])
-
+ 
             # ==== Generate images ====
             for i in range(num_samples):
                 image = pipe(
@@ -50,13 +59,12 @@ def generate(
                     height=resolution,
                     width=resolution
                 ).images[0]
-
+ 
                 img_path = os.path.join(OUTPUT_DIR, f"{i}.png")
                 image.save(img_path)
-                f.write(f"Saved: {img_path}\n")
+                log(f"Saved image {i+1}/{num_samples}")
 
-            f.write("✅ Generation complete.\n")
+            log(f"Complete Generation For '{name}'")
 
         except Exception as e:
-            error_msg = f"❌ Generation failed: {e}"
-            f.write(error_msg + "\n")
+            log(f"Failed Generation For '{name}': {e}")

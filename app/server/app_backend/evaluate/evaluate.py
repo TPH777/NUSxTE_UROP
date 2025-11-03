@@ -106,5 +106,5 @@ def run_evaluation(name, real_images_path, generated_images_path):
     except Exception as e:
         logging.error(f"Error saving JSON file: {e}")
     
-    logging.info(f"--- Evaluation Run '{name}' Complete ---")
+    logging.info(f"--- Complete Evaluation For '{name}' ---")
     return all_metrics
