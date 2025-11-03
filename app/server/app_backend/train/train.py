@@ -61,9 +61,9 @@ def train_model(
             # write final status (success/failure) to the log with timestamp
             exit_code = process.returncode
             if exit_code == 0:
-                final_msg = "Training completed successfully\n"
+                final_msg = f"Complete Training For '{name}'\n"
             else:
-                final_msg = f"Training exited with code {exit_code}\n"
+                final_msg = f"Failed Training For '{name}': exited with code {exit_code}\n"
             print(final_msg, file=sys.stderr, end="")
             f.write(final_msg)
             f.flush()
