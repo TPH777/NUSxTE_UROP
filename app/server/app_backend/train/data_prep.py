@@ -3,22 +3,21 @@ import json
 
 def generate_metadata_jsonl(root_dir):
     entries = []
+    allowed = ('.jpg', '.jpeg', '.png', '.webp')
+    label = os.path.basename(os.path.normpath(root_dir))
 
-    for subdir, dirs, files in os.walk(root_dir):
-        rel_dir = os.path.relpath(subdir, root_dir)
-        if rel_dir == ".":
-            continue  # Skip root dir itself
-        prompt = rel_dir.replace("\\", "/")  # Handle Windows paths
+    for fname in os.listdir(root_dir):
+        path = os.path.join(root_dir, fname)
+        if os.path.isfile(path) and fname.lower().endswith(allowed):
+            entry = {
+                "file_name": fname,
+                "text": label
+            }
+            entries.append(entry)
 
-        for file in files:
-            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
-                relative_path = os.path.join(prompt, file).replace("\\", "/")
-                entry = {
-                    "file_name": relative_path,
-                    "text": prompt
-                }
-                entries.append(entry)
-
-    with open(os.path.join(root_dir, 'metadata.jsonl'), 'w', encoding='utf-8') as f:
+    out_path = os.path.join(root_dir, 'metadata.jsonl')
+    with open(out_path, 'w', encoding='utf-8') as f:
         for entry in entries:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+
+    return out_path, len(entries)
