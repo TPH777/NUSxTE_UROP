@@ -50,9 +50,20 @@ def train_model(
     # ==== Run and stream stderr to logfile ====
     with open(LOG_FILE, "w", encoding="utf-8", buffering=1) as f:
         process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE, text=True)
-        for line in process.stderr:
-            # print stderr live to the terminal's stderr and save to log
-            print(line, end="", file=sys.stderr)
-            f.write(line)
+        try:
+            for line in process.stderr:
+                # print stderr live to the terminal's stderr and save to log
+                print(line, end="", file=sys.stderr)
+                f.write(line)
+                f.flush()
+            process.wait()
+        finally:
+            # write final status (success/failure) to the log with timestamp
+            exit_code = process.returncode
+            if exit_code == 0:
+                final_msg = "Training completed successfully\n"
+            else:
+                final_msg = f"Training exited with code {exit_code}\n"
+            print(final_msg, file=sys.stderr, end="")
+            f.write(final_msg)
             f.flush()
-        process.wait()
