@@ -4,13 +4,21 @@
     "generated_path": "/home/t/tph777/app_backend/generate/output/my_model"
   },
   "metrics": {
-    "inception_score": 1.7930536270141602,
-    "fid_overall": 370.3561096797283,
+    "inception_score": 2.968522787094116,
+    "fid_overall": 100.64598068047503,
     "fid_per_class": {
-      "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.": 391.8292094066811
+      "<CLS_Single_Sided_Pin> images with only one side of a pin visible, and all visible pins aligned and fully soldered.": 157.20727898173044,
+      "<CLS_No_Solder> images with pins without any solder, but all pins present and aligned.": 176.41407300723753,
+      "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.": 229.64706869041686,
+      "<CLS_OK> images with pins perfectly aligned and fully soldered.": 108.78889554976092,
+      "<CLS_Misaligned_Pins> images with pins misaligned, but no pin missing and all pins fully soldered.": 212.02990212366092
     },
     "lpips_avg_min_per_class": {
-      "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.": 0.7146977186203003
+      "<CLS_Single_Sided_Pin> images with only one side of a pin visible, and all visible pins aligned and fully soldered.": 0.4370495104789734,
+      "<CLS_No_Solder> images with pins without any solder, but all pins present and aligned.": 0.4720783883333206,
+      "<CLS_Low_Solder> images with pins that have reduced solder, but all pins present and aligned.": 0.5732275718450546,
+      "<CLS_OK> images with pins perfectly aligned and fully soldered.": 0.4402392017841339,
+      "<CLS_Misaligned_Pins> images with pins misaligned, but no pin missing and all pins fully soldered.": 0.4500595688819885
     }
   }
 }
