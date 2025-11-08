@@ -2,6 +2,7 @@ import subprocess
 import os
 from .data_prep import generate_metadata_jsonl
 import sys
+import shutil
 
 def train_model(
     name: str,
@@ -23,7 +24,9 @@ def train_model(
     # Output directory
     OUTPUT_DIR = f"{BASE_DIR}/output/{name}/{prompt.replace(' ', '_')}"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    LOG_FILE = os.path.join(OUTPUT_DIR, f"train.log")
+    LOG_FILE = os.path.join(BASE_DIR, f"train.log")
+    # To copy the logfile for tracking as a backup within the class
+    backup_log = os.path.join(OUTPUT_DIR, "train.log")
 
     # Generate metadata.jsonl
     generate_metadata_jsonl(dataset_path)
@@ -64,6 +67,8 @@ def train_model(
                 final_msg = f"Complete Training For '{name}'\n"
             else:
                 final_msg = f"Failed Training For '{name}': exited with code {exit_code}\n"
+
             print(final_msg, file=sys.stderr, end="")
+            shutil.copy2(LOG_FILE, backup_log)
             f.write(final_msg)
             f.flush()

@@ -2,6 +2,7 @@ from diffusers import DiffusionPipeline
 import torch
 import os
 import datetime
+import shutil
 
 def generate(
     name: str,
@@ -19,7 +20,10 @@ def generate(
     # Output directory
     OUTPUT_DIR = f"{BASE_DIR}/output/{name}/{prompt.replace(' ', '_')}"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    LOG_FILE = os.path.join(OUTPUT_DIR, f"generate.log")
+    # keep a main log in the module dir and copy a backup into the output dir
+    LOG_FILE = os.path.join(BASE_DIR, "generate.log")
+    # To copy the logfile for tracking as a backup within the class
+    backup_log = os.path.join(OUTPUT_DIR, "generate.log")
 
     # ==== Load pipeline and LoRA weights ====
     # open with explicit encoding and line buffering, and flush after each write to ensure live logging
@@ -64,6 +68,7 @@ def generate(
                 image.save(img_path)
                 log(f"Saved image {i+1}/{num_samples}")
 
+            shutil.copy2(LOG_FILE, backup_log)
             log(f"Complete Generation For '{name}'")
 
         except Exception as e:
