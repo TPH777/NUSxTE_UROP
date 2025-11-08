@@ -12,11 +12,11 @@ from evaluate.metrics_lpips import compute_class_lpips
 def run_evaluation(name, real_images_path, generated_images_path):
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    LOG_FILE = f"{BASE_DIR}/{name}/evaluate.log"
+    LOG_FILE = f"{BASE_DIR}/output/{name}/evaluate.log"
     log_dir = os.path.dirname(LOG_FILE)
     os.makedirs(log_dir, exist_ok=True)
-    
-    METRICS_JSON = f"{BASE_DIR}/{name}/metrics.json"
+
+    METRICS_JSON = f"{BASE_DIR}/output/{name}/metrics.json"
     json_dir = os.path.dirname(METRICS_JSON)
     os.makedirs(json_dir, exist_ok=True)
 
