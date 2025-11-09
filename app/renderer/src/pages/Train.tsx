@@ -5,12 +5,33 @@ import Complete from "../components/Complete";
 import ShowTraining from "../components/ShowTraining";
 import Generate from "../components/Generate";
 import { StageContext } from "../context/StageContext";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+
+
+type TrainingState = {
+    progress: number;
+    currentStep: number;
+    totalSteps: number;
+    timeElapsed: string;
+    timeRemaining: string;
+    currentLoss: number;
+    recentLosses: number[];
+    avgLoss: number;
+    learningRate: number;
+    lastCheckpoint: string;
+    lastSaved: string;
+}
 
 function Train() {
 
   const context = useContext(StageContext);
   const currentStage = context?.currentStage;
+
+  const [trainingState, setTrainingState] = useState<TrainingState | null>(null);
+  const [showDetailedStats, setShowDetailedStats] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
+  const [isStale, setIsStale] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="pagesplit">
@@ -19,7 +40,9 @@ function Train() {
       </div>
       <div className="input-wrapper">
         { currentStage == 0 ? <FileInput /> : 
-        currentStage == 1 ? <ShowTraining /> :
+        currentStage == 1 ? <ShowTraining trainingState={trainingState} setTrainingState={setTrainingState}
+          showDetailedStats={showDetailedStats} setShowDetailedStats={setShowDetailedStats} lastUpdate={lastUpdate}
+          setLastUpdate={setLastUpdate} isStale={isStale} setIsStale={setIsStale} error={error} setError={setError} /> :
         currentStage == 2 ? <Generate /> : 
         <div className="complete-wrapper">
           <Complete />

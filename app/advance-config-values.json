@@ -1,0 +1,15 @@
+{
+  "trainRatio": 0.7,
+  "testRatio": 0.2,
+  "validRatio": 0.1,
+  "splitRandomSeed": 88,
+  "batch_size": 4,
+  "learning_rate": 0.001,
+  "epochs": 10,
+  "resolution": 512,
+  "memory_efficient": false,
+  "num_samples": 10,
+  "gen_resolution": 512,
+  "num_inference_steps": 50,
+  "guidance_scale": 7.5
+}

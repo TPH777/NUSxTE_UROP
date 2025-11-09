@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useEffect} from 'react';
 import './ShowTraining.css'
 
 type TrainingState = {
@@ -15,19 +15,28 @@ type TrainingState = {
     lastSaved: string;
 }
 
+type ShowTrainingVar = {
+  trainingState: TrainingState | null,
+  setTrainingState: React.Dispatch<React.SetStateAction<TrainingState | null>>,
+  showDetailedStats: boolean,
+  setShowDetailedStats: React.Dispatch<React.SetStateAction<boolean>>,
+  lastUpdate: number,
+  setLastUpdate: React.Dispatch<React.SetStateAction<number>>,
+  isStale: boolean,
+  setIsStale: React.Dispatch<React.SetStateAction<boolean>>,
+  error: string | null,
+  setError: React.Dispatch<React.SetStateAction<string | null>>
+}
+
 declare global {
     interface Window {
         require: (module: string) => any;
     }
 }
 
-
-function ShowTraining(){
-    const [trainingState, setTrainingState] = useState<TrainingState | null>(null);
-    const [showDetailedStats, setShowDetailedStats] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
-    const [isStale, setIsStale] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingState, showDetailedStats, setShowDetailedStats,
+  lastUpdate, setLastUpdate, isStale, setIsStale, error, setError
+} ) => {
 
     useEffect(() => {
         const pollInterval = 5000 // 5 seconds

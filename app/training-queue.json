@@ -1,10 +1,9 @@
 {
   "train": [
     {
-<<<<<<< HEAD
-      "name": "NG-Misalign",
-      "prompt": "",
-      "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-Misalign",
+      "name": "UROP Soldering Generator",
+      "prompt": "testing",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\testing",
       "batch_size": 4,
       "learning_rate": 0.001,
       "epochs": 10,
@@ -12,24 +11,9 @@
       "memory_efficient": false
     },
     {
-      "name": "NG-No Solder",
-      "prompt": "",
-      "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-No Solder",
-      "batch_size": 4,
-      "learning_rate": 0.001,
-      "epochs": 10,
-      "resolution": 512,
-      "memory_efficient": false
-    },
-    {
-      "name": "OK",
-      "prompt": "",
-      "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/OK",
-=======
-      "name": "sdfsdf",
-      "prompt": "<sdfsdf>",
-      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\sdfsdf",
->>>>>>> refs/remotes/origin/main
+      "name": "UROP Soldering Generator",
+      "prompt": "testing1",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\testing1",
       "batch_size": 4,
       "learning_rate": 0.001,
       "epochs": 10,
@@ -39,29 +23,15 @@
   ],
   "generate": [
     {
-<<<<<<< HEAD
-      "name": "NG-Misalign",
+      "name": "testing",
       "num_samples": 10,
-      "prompt": "",
       "resolution": 512,
       "num_inference_steps": 50,
       "guidance_scale": 7.5
     },
     {
-      "name": "NG-No Solder",
+      "name": "testing1",
       "num_samples": 10,
-      "prompt": "",
-      "resolution": 512,
-      "num_inference_steps": 50,
-      "guidance_scale": 7.5
-    },
-    {
-      "name": "OK",
-=======
-      "name": "sdfsdf",
->>>>>>> refs/remotes/origin/main
-      "num_samples": 10,
-      "prompt": "",
       "resolution": 512,
       "num_inference_steps": 50,
       "guidance_scale": 7.5
