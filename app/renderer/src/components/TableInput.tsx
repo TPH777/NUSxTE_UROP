@@ -150,7 +150,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         const rowsWithFiles = rows.filter(
             (row) => row.className.trim() && row.files.length > 0
         );
-        
+
         if (rowsWithFiles.length === 0) {
             setErrorMessage(
                 "Nothing to train. Add a class name and at least one file before training."
@@ -178,10 +178,11 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 const className = sanitizePathSegment(row.className.trim());
                 const noSpaces = className.replace(/\s+/g, '_');
                 const prompt = `<${noSpaces}>`;
+                const projectName = "UROP Soldering Generator"
 
                 const trainingConfig: Record<string, any> = {
-                    name: className,
-                    prompt: prompt,
+                    name: projectName,
+                    prompt: className,
                     dataset_path: nodePath.join(
                         baseDir,
                         "dataset",
