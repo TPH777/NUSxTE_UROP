@@ -3,6 +3,8 @@ import json
 import os
 import tensorflow as tf
 import logging
+import shutil
+from util import convert_to_serializable
 
 # Import the specific metric functions
 from evaluate.metrics_fid import compute_overall_fid, compute_all_class_fids
@@ -12,11 +14,13 @@ from evaluate.metrics_lpips import compute_class_lpips
 def run_evaluation(name, real_images_path, generated_images_path):
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    LOG_FILE = f"{BASE_DIR}/{name}/evaluate.log"
-    log_dir = os.path.dirname(LOG_FILE)
-    os.makedirs(log_dir, exist_ok=True)
-    
-    METRICS_JSON = f"{BASE_DIR}/{name}/metrics.json"
+    # keep a main log in the module dir and copy a backup into the output dir (like train/generate)
+    LOG_FILE = f"{BASE_DIR}/evaluate.log"
+    backup_log = f"{BASE_DIR}/output/{name}/evaluate.log"
+    backup_dir = os.path.dirname(backup_log)
+    os.makedirs(backup_dir, exist_ok=True)
+
+    METRICS_JSON = f"{BASE_DIR}/output/{name}/metrics.json"
     json_dir = os.path.dirname(METRICS_JSON)
     os.makedirs(json_dir, exist_ok=True)
 
@@ -101,10 +105,12 @@ def run_evaluation(name, real_images_path, generated_images_path):
 
     # --- 4. Save Results to JSON ---
     try:
+        safe_metrics = convert_to_serializable(all_metrics)
         with open(METRICS_JSON, 'w') as f:
-            json.dump(all_metrics, f, indent=4)
+            json.dump(safe_metrics, f, indent=4)
     except Exception as e:
         logging.error(f"Error saving JSON file: {e}")
-    
-    logging.info(f"--- Evaluation Run '{name}' Complete ---")
+      
+    shutil.copy2(LOG_FILE, backup_log)
+    logging.info(f"--- Complete Evaluation For '{name}' ---")
     return all_metrics

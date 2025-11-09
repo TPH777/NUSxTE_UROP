@@ -2,6 +2,7 @@ import subprocess
 import os
 from .data_prep import generate_metadata_jsonl
 import sys
+import shutil
 
 def train_model(
     name: str,
@@ -23,7 +24,9 @@ def train_model(
     # Output directory
     OUTPUT_DIR = f"{BASE_DIR}/output/{name}/{prompt.replace(' ', '_')}"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    LOG_FILE = os.path.join(OUTPUT_DIR, f"train.log")
+    LOG_FILE = os.path.join(BASE_DIR, f"train.log")
+    # To copy the logfile for tracking as a backup within the class
+    backup_log = os.path.join(OUTPUT_DIR, "train.log")
 
     # Generate metadata.jsonl
     generate_metadata_jsonl(dataset_path)
@@ -50,9 +53,22 @@ def train_model(
     # ==== Run and stream stderr to logfile ====
     with open(LOG_FILE, "w", encoding="utf-8", buffering=1) as f:
         process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE, text=True)
-        for line in process.stderr:
-            # print stderr live to the terminal's stderr and save to log
-            print(line, end="", file=sys.stderr)
-            f.write(line)
+        try:
+            for line in process.stderr:
+                # print stderr live to the terminal's stderr and save to log
+                print(line, end="", file=sys.stderr)
+                f.write(line)
+                f.flush()
+            process.wait()
+        finally:
+            # write final status (success/failure) to the log with timestamp
+            exit_code = process.returncode
+            if exit_code == 0:
+                final_msg = f"Complete Training For '{name}'\n"
+            else:
+                final_msg = f"Failed Training For '{name}': exited with code {exit_code}\n"
+
+            print(final_msg, file=sys.stderr, end="")
+            shutil.copy2(LOG_FILE, backup_log)
+            f.write(final_msg)
             f.flush()
-        process.wait()

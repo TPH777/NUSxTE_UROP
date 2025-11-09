@@ -1,6 +1,7 @@
 {
   "train": [
     {
+<<<<<<< HEAD
       "name": "NG-Misalign",
       "prompt": "",
       "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/NG-Misalign",
@@ -24,6 +25,11 @@
       "name": "OK",
       "prompt": "",
       "dataset_path": "/Users/wongwh/Desktop/NUS/Y3S1/urop/NUSxTE_UROP/app/dataset/train/OK",
+=======
+      "name": "sdfsdf",
+      "prompt": "<sdfsdf>",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\sdfsdf",
+>>>>>>> refs/remotes/origin/main
       "batch_size": 4,
       "learning_rate": 0.001,
       "epochs": 10,
@@ -33,6 +39,7 @@
   ],
   "generate": [
     {
+<<<<<<< HEAD
       "name": "NG-Misalign",
       "num_samples": 10,
       "prompt": "",
@@ -50,6 +57,9 @@
     },
     {
       "name": "OK",
+=======
+      "name": "sdfsdf",
+>>>>>>> refs/remotes/origin/main
       "num_samples": 10,
       "prompt": "",
       "resolution": 512,
