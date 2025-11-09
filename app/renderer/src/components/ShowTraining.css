@@ -7,6 +7,7 @@
 }
 
 .show-training h2 {
+    
     margin-bottom: 1.5rem;
     color: #333;
 }
@@ -119,4 +120,26 @@
 .show-training__stat-value {
     color: #212529;
     font-family: 'Courier New', monospace;
+}
+
+.show-training__class-counter {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-align: center;
+    color: #495057;
+}
+
+.show-training__completed-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background-color: #28a745;
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
 }

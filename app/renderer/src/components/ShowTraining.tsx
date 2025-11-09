@@ -13,11 +13,14 @@ type TrainingState = {
     learningRate: number;
     lastCheckpoint: string;
     lastSaved: string;
+    currentClass: number;
+    totalClasses: number;
+    isComplete: boolean;
 }
 
 declare global {
     interface Window {
-        require: (module: string) => any;
+        require: ((module: string) => any) | undefined;
     }
 }
 
@@ -28,15 +31,39 @@ function ShowTraining(){
     const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
     const [isStale, setIsStale] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [completedClasses, setCompletedClasses] = useState<number>(0);
+    const [totalClasses, setTotalClasses] = useState<number>(0);
 
     useEffect(() => {
+        
+        const loadTotalClasses = async () => {
+            try {
+                if (!window.require) return;
+        
+                const electron = window.require('electron') as any;
+                const { ipcRenderer } = electron;
+                const result = await ipcRenderer.invoke('read-training-queue');
+
+                if (result.success) {
+                    setTotalClasses(result.totalClasses);
+                    console.log('Total classes to train:', result.totalClasses);
+                }
+            } catch (err) {
+                console.error('Failed to read training queue:', err);
+            }
+        };
+        loadTotalClasses();
+
         const pollInterval = 5000 // 5 seconds
         const staleThreshold = pollInterval * 12 // 1 minute - consider stale if no update
 
         const readTrainingLog = async () => {
             try {
                 // Use IPC to read file from main process
-                const { ipcRenderer } = window.require('electron');
+                if (!window.require) return;
+        
+                const electron = window.require('electron') as any;
+                const { ipcRenderer } = electron;
                 const result = await ipcRenderer.invoke('read-training-log');
                 
                 console.log('IPC result:', result);
@@ -52,7 +79,18 @@ function ShowTraining(){
                     setLastUpdate(Date.now());
                     setIsStale(false);
                     setError(null);
+
+                    if (parsed.isComplete) {
+                        console.log('Class Training Completed!');
+                        setCompletedClasses(prev => prev + 1);
+
+                        const electron = window.require('electron') as any;
+                        const { ipcRenderer } = electron;
+                        await ipcRenderer.invoke('clear-training-log');
+                        console.log('Log file cleared, ready for next class');
+                    }
                 }
+
             } catch (err) {
                 console.error('Error reading training log:', err);
                 setError('Unable to read training log. Check if training has started.');
@@ -84,10 +122,18 @@ function ShowTraining(){
         let latestState: Partial<TrainingState> = {};
         let lastCheckpoint = '';
         let lastSaved = '';
+        let isComplete = false;
+
+        const completionPattern = /Complete Training For ['"](.+?)['"]/;
 
         //process lines from end
         for (let i = lines.length - 1; i >= 0 && recentLosses.length < 5; i--) {
             const line = lines[i];
+
+            if (completionPattern.test(line)) {
+                isComplete = true;
+                console.log('Detected training completion:', line);
+            }
 
             // Parse progress line: "Steps:  83%|████████▎ | 2500/3000 [3:19:27<39:53,  4.79s/it, lr=0.0002, step_loss=0.0263]"
             const progressMatch = line.match(/Steps:\s+(\d+)%.*?\|\s+(\d+)\/(\d+)\s+\[([^\]<]+)(?:<([^\],]+))?,\s+[\d.]+s\/it,\s+lr=([\d.eE+-]+),\s+step_loss=([\d.]+)\]/);
@@ -135,12 +181,27 @@ function ShowTraining(){
             avgLoss,
             lastCheckpoint: lastCheckpoint || 'None',
             lastSaved: lastSaved || 'None',
+            currentClass: completedClasses + 1,
+            totalClasses: totalClasses,
+            isComplete,
         } as TrainingState;
     };
 
     return (
         <div className="show-training">
             <h2> Training Progress</h2>
+
+            {totalClasses > 0 && (
+                <div className="show-training__class-counter">
+                    Training Class: {completedClasses + 1} / {totalClasses}
+                    {completedClasses > 0 && (
+                        <span className="show-training__completed-baded">
+                            ({completedClasses} completed)
+                        </span>
+                    )}
+
+                </div>
+            )}
 
             {error && (
                 <div className="show-training__error"> 

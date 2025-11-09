@@ -1,0 +1,7 @@
+{
+  "num_samples": 10,
+  "prompt": "",
+  "resolution": 512,
+  "num_inference_steps": 50,
+  "guidance_scale": 7.5
+}
