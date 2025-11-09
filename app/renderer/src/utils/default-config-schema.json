@@ -93,12 +93,6 @@
                 "default": 10
             },
             {
-                "key": "prompt",
-                "label": "Prompt",
-                "type": "text",
-                "default": ""
-            },
-            {
                 "key": "gen_resolution",
                 "label": "Generation Resolution",
                 "type": "number",

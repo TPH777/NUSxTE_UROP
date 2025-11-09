@@ -129,9 +129,28 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             return;
         }
 
+        // save photos
+        const photosSaved = await handleSavePhotos();
+        if (!photosSaved) {
+            setErrorMessage("Failed to save photos. Aborting training.");
+            return;
+        }
+
+        try {
+            const baseDir = window.process?.cwd?.() ?? ".";
+            const configPath = nodePath.join(baseDir, "advance-config-values.json")
+            const jsonString = JSON.stringify(config, null, 2);
+            const jsonBuffer = new TextEncoder().encode(jsonString);
+            await fs.writeFile(configPath, jsonBuffer);
+            console.log("Saved config to", configPath);
+        } catch (err) {
+            console.warn("Could not sav config file:", err)
+        }
+
         const rowsWithFiles = rows.filter(
             (row) => row.className.trim() && row.files.length > 0
         );
+        
         if (rowsWithFiles.length === 0) {
             setErrorMessage(
                 "Nothing to train. Add a class name and at least one file before training."
@@ -231,12 +250,12 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
         }
     };
 
-    const handleSavePhotos = async () => {
+    const handleSavePhotos = async (): Promise<boolean> => {
         if (!fs || !nodePath) {
             setErrorMessage(
                 "File system APIs are unavailable in this environment."
             );
-            return;
+            return false;
         }
 
         const rowsWithFiles = rows.filter(
@@ -246,7 +265,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             setErrorMessage(
                 "Nothing to save. Add a class name and at least one file before submitting."
             );
-            return;
+            return false;
         }
 
         setIsSaving(true);
@@ -437,11 +456,13 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
                 }
             }
             console.log("Dataset splits created successfully");
+            return true;
         } catch (error) {
             console.error("Failed to save files", error);
             setErrorMessage(
                 error instanceof Error ? error.message : "Failed to save files."
             );
+            return false;
         } finally {
             setIsSaving(false);
         }
