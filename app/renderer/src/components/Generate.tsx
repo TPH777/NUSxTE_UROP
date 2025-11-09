@@ -21,10 +21,12 @@ type ClassProgress = {
     expected: number;
     generated: number;
     isComplete: boolean;
-    images: string[]; // Add this
+    imageNames: string[]; // Change from images to imageNames
 };
 
 function Generate() {
+    console.log('=== GENERATE COMPONENT MOUNTED ===');
+    
     const [generateConfigs, setGenerateConfigs] = useState<GenerateConfig[]>([]);
     const [classProgress, setClassProgress] = useState<ClassProgress[]>([]);
     const [totalExpected, setTotalExpected] = useState<number>(0);
@@ -32,13 +34,22 @@ function Generate() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+    const [hoveredImagePath, setHoveredImagePath] = useState<string | null>(null); // Add this
     const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
+
+    console.log('Generate component state:', { isLoading, error, configsLength: generateConfigs.length });
 
     // Load generate configs on mount
     useEffect(() => {
+        console.log('=== LOAD GENERATE CONFIGS useEffect RUNNING ===');
+        
         const loadGenerateConfigs = async () => {
+            console.log('loadGenerateConfigs function called');
             try {
+                console.log('window.require exists?', !!window.require);
+                
                 if (!window.require) {
+                    console.error('window.require is undefined!');
                     setError('Electron APIs not available');
                     setIsLoading(false);
                     return;
@@ -46,21 +57,22 @@ function Generate() {
 
                 const electron = window.require('electron') as any;
                 const { ipcRenderer } = electron;
+                
+                console.log('Invoking read-generate-queue...');
                 const result = await ipcRenderer.invoke('read-generate-queue');
-
-                console.log('Generate queue result:', result); // Debug log
+                
+                console.log('Generate queue result:', result);
 
                 if (result && result.success && result.generateConfigs) {
                     console.log('Generate configs loaded:', result.generateConfigs);
                     setGenerateConfigs(result.generateConfigs);
                     
-                    // Calculate total expected
                     const total = result.generateConfigs.reduce(
                         (sum: number, config: GenerateConfig) => sum + config.num_samples, 
                         0
                     );
                     setTotalExpected(total);
-                    setError(null); // Clear any previous errors
+                    setError(null);
                 } else {
                     const errorMsg = result?.error || 'Failed to load generate queue - no data returned';
                     console.error('Failed to load generate queue:', errorMsg);
@@ -79,49 +91,68 @@ function Generate() {
 
     // Poll for generated images
     useEffect(() => {
-        if (generateConfigs.length === 0) return;
+        console.log('=== POLLING useEffect ===');
+        console.log('generateConfigs:', generateConfigs);
+        
+        if (generateConfigs.length === 0) {
+            console.log('No configs yet, skipping polling');
+            return;
+        }
 
         const countGeneratedImages = async () => {
+            console.log('=== countGeneratedImages called ===');
             try {
-                if (!window.require) return;
+                if (!window.require) {
+                    console.log('window.require not available');
+                    return;
+                }
 
                 const electron = window.require('electron') as any;
                 const { ipcRenderer } = electron;
 
-                const progressPromises = generateConfigs.map(async (config) => {
+                const progressPromises = generateConfigs.map(async (config, index) => {
+                    console.log(`Counting images for config ${index}:`, config);
+                    
                     const result = await ipcRenderer.invoke(
                         'count-generated-images',
                         config.name,
                         config.prompt
                     );
 
+                    console.log(`Result for ${config.prompt}:`, result);
+
                     return {
                         prompt: config.prompt,
                         expected: config.num_samples,
                         generated: result.success ? result.count : 0,
                         isComplete: result.success && result.count >= config.num_samples,
-                        images: result.success ? result.images : [],
+                        imageNames: result.success ? result.imageNames : [], // Change to imageNames
                     };
                 });
 
                 const progress = await Promise.all(progressPromises);
+                console.log('All progress results:', progress);
+                
                 setClassProgress(progress);
 
-                // Calculate total generated
                 const total = progress.reduce((sum, p) => sum + p.generated, 0);
+                console.log('Total generated images:', total);
                 setTotalGenerated(total);
             } catch (err) {
                 console.error('Error counting generated images:', err);
             }
         };
 
-        // Initial count
+        console.log('Running initial count...');
         countGeneratedImages();
 
-        // Poll every 3 seconds
+        console.log('Setting up polling interval (3000ms)');
         const intervalId = setInterval(countGeneratedImages, 3000);
 
-        return () => clearInterval(intervalId);
+        return () => {
+            console.log('Cleaning up polling interval');
+            clearInterval(intervalId);
+        };
     }, [generateConfigs]);
 
     const toggleClassExpanded = (index: number) => {
@@ -134,6 +165,42 @@ function Generate() {
             }
             return newSet;
         });
+    };
+
+    // Update the handleImageHover function (around line 174)
+    const handleImageHover = async (classIndex: number, imageName: string) => {
+        if (!window.require) return;
+        
+        console.log('Hovering over image:', imageName);
+        
+        try {
+            const electron = window.require('electron') as any;
+            const { ipcRenderer } = electron;
+            
+            const config = generateConfigs[classIndex];
+            console.log('Loading image with config:', config.name, config.prompt, imageName);
+            
+            const result = await ipcRenderer.invoke(
+                'get-image-data',
+                config.name,
+                config.prompt,
+                imageName
+            );
+            
+            console.log('Image load result:', result.success ? 'success' : result.error);
+            
+            if (result.success) {
+                setHoveredImage(imageName);
+                setHoveredImagePath(result.dataUrl); // Use dataUrl instead of path
+            }
+        } catch (err) {
+            console.error('Error loading image:', err);
+        }
+    };
+
+    const handleImageLeave = () => {
+        setHoveredImage(null);
+        setHoveredImagePath(null);
     };
 
     if (isLoading) {
@@ -226,27 +293,24 @@ function Generate() {
                                 />
                             </div>
 
-                            {/* Image Gallery */}
-                            {isExpanded && progress.images.length > 0 && (
-                                <div className="generate__image-gallery">
-                                    {progress.images.map((imagePath, imgIndex) => (
+                            {/* Image List (names only) */}
+                            {isExpanded && progress.imageNames.length > 0 && (
+                                <div className="generate__image-list">
+                                    {progress.imageNames.map((imageName, imgIndex) => (
                                         <div 
                                             key={imgIndex}
-                                            className="generate__image-container"
-                                            onMouseEnter={() => setHoveredImage(imagePath)}
-                                            onMouseLeave={() => setHoveredImage(null)}
+                                            className="generate__image-item"
+                                            onMouseEnter={() => handleImageHover(index, imageName)}
+                                            onMouseLeave={handleImageLeave}
                                         >
-                                            <img 
-                                                src={`file://${imagePath}`}
-                                                alt={`Generated ${progress.prompt} ${imgIndex + 1}`}
-                                                className="generate__image-thumbnail"
-                                            />
+                                            <span className="generate__image-icon">🖼️</span>
+                                            <span className="generate__image-name">{imageName}</span>
                                         </div>
                                     ))}
                                 </div>
                             )}
 
-                            {isExpanded && progress.images.length === 0 && (
+                            {isExpanded && progress.imageNames.length === 0 && (
                                 <div className="generate__no-images">
                                     No images generated yet
                                 </div>
@@ -257,11 +321,18 @@ function Generate() {
             </div>
 
             {/* Hover Preview */}
-            {hoveredImage && (
+            {hoveredImage && hoveredImagePath && (
                 <div className="generate__hover-preview">
+                    <div className="generate__hover-preview-header">
+                        {hoveredImage}
+                    </div>
                     <img 
-                        src={`file://${hoveredImage}`}
-                        alt="Preview"
+                        src={hoveredImagePath}  // Remove file://, now it's a data URL
+                        alt={hoveredImage}
+                        onError={(e) => {
+                            console.error('Image failed to load:', hoveredImage);
+                            console.error('Data URL length:', hoveredImagePath?.length);
+                        }}
                     />
                 </div>
             )}
