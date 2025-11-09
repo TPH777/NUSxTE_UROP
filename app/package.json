@@ -4,7 +4,7 @@
   "main": "main/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env NODE_ENV=development concurrently \"cd renderer && npm run dev\" \"wait-on http://localhost:5173 && electron .\" \"cd server && python server.py\"",
+    "start": "cross-env NODE_ENV=development concurrently \"cd renderer && npm run dev\" \"wait-on http://localhost:5173 && electron .\" \"cd server && python3 server.py\"",
     "build": "cd renderer && npm run build && electron-builder"
   },
   "keywords": [],
