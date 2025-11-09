@@ -1,5 +1,6 @@
-import {useEffect} from 'react';
+import {useContext, useEffect} from 'react';
 import './ShowTraining.css'
+import { QueueContext } from '../context/QueueContext';
 
 type TrainingState = {
     progress: number;
@@ -45,6 +46,8 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
   lastUpdate, setLastUpdate, isStale, setIsStale, error, setError, completedClasses, 
   setCompletedClasses, totalClasses, setTotalClasses
 } ) => {
+
+    const queueContext = useContext(QueueContext);
 
     useEffect(() => {
         
@@ -156,6 +159,7 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
 
             if (completionPattern.test(line)) {
                 isComplete = true;
+                queueContext?.taskComplete("train");
                 console.log('Detected training completion:', line);
             }
 
