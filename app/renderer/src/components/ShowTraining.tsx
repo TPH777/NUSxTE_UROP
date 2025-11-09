@@ -13,6 +13,9 @@ type TrainingState = {
     learningRate: number;
     lastCheckpoint: string;
     lastSaved: string;
+    currentClass: number;
+    totalClasses: number;
+    isComplete: boolean;
 }
 
 type ShowTrainingVar = {
@@ -26,26 +29,53 @@ type ShowTrainingVar = {
   setIsStale: React.Dispatch<React.SetStateAction<boolean>>,
   error: string | null,
   setError: React.Dispatch<React.SetStateAction<string | null>>
+  completedClasses: number,
+  setCompletedClasses: React.Dispatch<React.SetStateAction<number>>,
+  totalClasses: number,
+  setTotalClasses: React.Dispatch<React.SetStateAction<number>>,
 }
 
 declare global {
     interface Window {
-        require: (module: string) => any;
+        require: ((module: string) => any) | undefined;
     }
 }
 
 const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingState, showDetailedStats, setShowDetailedStats,
-  lastUpdate, setLastUpdate, isStale, setIsStale, error, setError
+  lastUpdate, setLastUpdate, isStale, setIsStale, error, setError, completedClasses, 
+  setCompletedClasses, totalClasses, setTotalClasses
 } ) => {
 
     useEffect(() => {
+        
+        const loadTotalClasses = async () => {
+            try {
+                if (!window.require) return;
+        
+                const electron = window.require('electron') as any;
+                const { ipcRenderer } = electron;
+                const result = await ipcRenderer.invoke('read-training-queue');
+
+                if (result.success) {
+                    setTotalClasses(result.totalClasses);
+                    console.log('Total classes to train:', result.totalClasses);
+                }
+            } catch (err) {
+                console.error('Failed to read training queue:', err);
+            }
+        };
+        loadTotalClasses();
+
         const pollInterval = 5000 // 5 seconds
         const staleThreshold = pollInterval * 12 // 1 minute - consider stale if no update
 
         const readTrainingLog = async () => {
             try {
                 // Use IPC to read file from main process
-                const { ipcRenderer } = window.require('electron');
+                if (!window.require) return;
+        
+                const electron = window.require('electron') as any;
+                const { ipcRenderer } = electron;
                 const result = await ipcRenderer.invoke('read-training-log');
                 
                 console.log('IPC result:', result);
@@ -61,7 +91,30 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
                     setLastUpdate(Date.now());
                     setIsStale(false);
                     setError(null);
+
+                    if (parsed.isComplete) {
+                        console.log('Class Training Completed!');
+                        setCompletedClasses(prev => {
+                            const newCount = prev + 1;
+                            console.log(`Completed ${newCount}/${totalClasses} classes`);
+
+                            if (newCount >= totalClasses) {
+                                console.log('All training completed!')
+                                return newCount;
+                            }
+
+                            return newCount;
+                        });
+
+                        if (completedClasses + 1 < totalClasses) {
+                            const electron = window.require('electron') as any;
+                            const { ipcRenderer } = electron;
+                            await ipcRenderer.invoke('clear-training-log');
+                            console.log('Log file cleared, ready for next class');
+                        }
+                    }
                 }
+
             } catch (err) {
                 console.error('Error reading training log:', err);
                 setError('Unable to read training log. Check if training has started.');
@@ -93,10 +146,18 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
         let latestState: Partial<TrainingState> = {};
         let lastCheckpoint = '';
         let lastSaved = '';
+        let isComplete = false;
+
+        const completionPattern = /Complete Training For ['"](.+?)['"]/;
 
         //process lines from end
         for (let i = lines.length - 1; i >= 0 && recentLosses.length < 5; i--) {
             const line = lines[i];
+
+            if (completionPattern.test(line)) {
+                isComplete = true;
+                console.log('Detected training completion:', line);
+            }
 
             // Parse progress line: "Steps:  83%|████████▎ | 2500/3000 [3:19:27<39:53,  4.79s/it, lr=0.0002, step_loss=0.0263]"
             const progressMatch = line.match(/Steps:\s+(\d+)%.*?\|\s+(\d+)\/(\d+)\s+\[([^\]<]+)(?:<([^\],]+))?,\s+[\d.]+s\/it,\s+lr=([\d.eE+-]+),\s+step_loss=([\d.]+)\]/);
@@ -144,6 +205,9 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
             avgLoss,
             lastCheckpoint: lastCheckpoint || 'None',
             lastSaved: lastSaved || 'None',
+            currentClass: completedClasses + 1,
+            totalClasses: totalClasses,
+            isComplete,
         } as TrainingState;
     };
 
@@ -151,7 +215,25 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
         <div className="show-training">
             <h2> Training Progress</h2>
 
-            {error && (
+            {totalClasses > 0 && completedClasses < totalClasses && (
+                <div className="show-training__class-counter">
+                    Trained: {completedClasses} / {totalClasses} classes
+                </div>
+            )}
+
+            {totalClasses > 0 && completedClasses >= totalClasses && (
+                <div className="show-training__class-counter show-training__class-counter--complete">
+                    ✓ Training Completed - Proceed to Generate
+                </div>
+            )}
+
+            {error && error.includes('File is empty') && completedClasses < totalClasses && (
+                <div className="show-training__info">
+                    Training completed for class {completedClasses}. Moving on to next class...
+                </div>
+            )}
+
+            {error && !error.includes('File is empty') && (
                 <div className="show-training__error"> 
                     {error}
                 </div>
@@ -163,13 +245,19 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
                 </div>
             )}
 
+            {!trainingState && !error && completedClasses < totalClasses && (
+                <div className="show-training__empty">
+                    Waiting for training to start...
+                </div>
+            )}
+
             {!trainingState && !error && (
                 <div className="show-training__empty">
                     Waiting for training to start...
                 </div>
             )}
 
-            {trainingState && (
+            {trainingState && completedClasses < totalClasses && (
 
                 <>
                     <div className="show-training__progress">
