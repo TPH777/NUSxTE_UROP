@@ -3,7 +3,28 @@ const path = require('path');
 const fs = require('fs');
 require('electron-reload')(__dirname);
 
-// Add this IPC handler
+ipcMain.handle('read-training-queue', async () => {
+  try {
+    const queuePath = path.join(__dirname, "..", "training-queue.json");
+
+    if (!fs.existsSync(queuePath)) {
+      return {success: false, error: 'Training queue not found'};
+    }
+
+    const content = fs.readFileSync(queuePath, 'utf-8');
+    const queue = JSON.parse(content);
+
+    return {
+      success: true,
+      totalClasses: queue.train? queue.train.length : 0
+    };
+
+  } catch(error) {
+    return {success: false, error: error.message};
+  }
+});
+
+
 ipcMain.handle('read-training-log', async () => {
   try {
     const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'train', 'train.log');
@@ -21,6 +42,70 @@ ipcMain.handle('read-training-log', async () => {
     return { success: true, content };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('clear-training-log', async() => {
+  try {
+    const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'train', 'train.log');
+    fs.writeFileSync(logPath, '', 'utf-8');
+    console.log('Training log cleared');
+    return {success: true};
+  } catch (error) {
+    return {success: false, error: error.message};
+  }
+});
+
+ipcMain.handle('read-generate-queue', async () => {
+  try {
+    const queuePath = path.join(__dirname, "..", "training-queue.json");
+
+    if (!fs.existsSync(queuePath)) {
+      return {success: false, error: 'Generate queue not found'};
+    }
+
+    const content = fs.readFileSync(queuePath, 'utf-8');
+    const queue = JSON.parse(content);
+
+    return {
+      success: true,
+      totalClasses: queue.generate? queue.generate.length : 0
+    };
+
+  } catch(error) {
+    return {success: false, error: error.message};
+  }
+});
+
+
+ipcMain.handle('read-generate-log', async () => {
+  try {
+    const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'generate', 'generate.log');
+    
+    if (!fs.existsSync(logPath)) {
+      return { success: false, error: 'File not found' };
+    }
+    
+    const content = fs.readFileSync(logPath, 'utf-8');
+    
+    if (!content || content.trim() === '') {
+      return { success: false, error: 'File is empty' };
+    }
+    
+    return { success: true, content };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('clear-generate-log', async() => {
+  try {
+    const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'generate', 'generate.log');
+    fs.writeFileSync(logPath, '', 'utf-8');
+    console.log('Generate log cleared');
+    return {success: true};
+  } catch (error) {
+    return {success: false, error: error.message};
   }
 });
 
