@@ -58,9 +58,11 @@ ipcMain.handle('clear-training-log', async() => {
 
 ipcMain.handle('read-generate-queue', async () => {
   try {
+    
+    console.log('=== READ GENERATE QUEUE ===');
     const queuePath = path.join(__dirname, '..', 'training-queue.json');
     
-    console.log('Reading generate queue from:', queuePath); // Debug log
+    console.log('Reading from:', queuePath);
     
     if (!fs.existsSync(queuePath)) {
       return { success: false, error: 'Training queue not found' };
@@ -69,11 +71,11 @@ ipcMain.handle('read-generate-queue', async () => {
     const content = fs.readFileSync(queuePath, 'utf-8');
     const queue = JSON.parse(content);
     
-    console.log('Queue contents:', queue); // Debug log
+    console.log('Queue generate:', queue.generate);
     
     return { 
       success: true, 
-      generateConfigs: queue.generate || []
+      generateConfigs: queue.generate || []  // This is the key difference!
     };
   } catch (error) {
     console.error('Error reading generate queue:', error);
@@ -81,7 +83,47 @@ ipcMain.handle('read-generate-queue', async () => {
   }
 });
 
-// Update the count-generated-images handler
+ipcMain.handle('get-image-data', async (event, name, prompt, imageName) => {
+  try {
+    const imagePath = path.join(
+      __dirname,
+      '..',
+      'server',
+      'app_backend',
+      'generate',
+      'output',
+      name,
+      prompt,
+      imageName
+    );
+    
+    console.log('Loading image from:', imagePath);
+    
+    if (!fs.existsSync(imagePath)) {
+      console.error('Image not found at:', imagePath);
+      return { success: false, error: 'Image not found' };
+    }
+    
+    // Read image as base64
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+    const ext = path.extname(imagePath).toLowerCase();
+    
+    // Determine MIME type
+    let mimeType = 'image/jpeg';
+    if (ext === '.png') mimeType = 'image/png';
+    else if (ext === '.bmp') mimeType = 'image/bmp';
+    else if (ext === '.gif') mimeType = 'image/gif';
+    
+    const dataUrl = `data:${mimeType};base64,${base64Image}`;
+    
+    return { success: true, dataUrl };
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('count-generated-images', async (event, name, prompt) => {
   try {
     const outputPath = path.join(
@@ -95,26 +137,53 @@ ipcMain.handle('count-generated-images', async (event, name, prompt) => {
       prompt
     );
     
-    console.log('Checking for images at:', outputPath); // Debug log
+    console.log('Checking for images at:', outputPath);
     
     if (!fs.existsSync(outputPath)) {
-      return { success: true, count: 0, images: [] };
+      return { success: true, count: 0, imageNames: [] };
     }
     
     const files = fs.readdirSync(outputPath);
-    // Get only .png files with full paths
-    const images = files
-      .filter(file => file.endsWith('.png'))
-      .map(file => path.join(outputPath, file));
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.gif'];
+    const imageNames = files.filter(file => {
+      const ext = path.extname(file).toLowerCase();
+      return imageExtensions.includes(ext);
+    });
+    
+    console.log('Images found:', imageNames.length);
     
     return { 
       success: true, 
-      count: images.length,
-      images: images
+      count: imageNames.length,
+      imageNames: imageNames  // Return just the names
     };
   } catch (error) {
     console.error('Error counting images:', error);
-    return { success: false, error: error.message, count: 0, images: [] };
+    return { success: false, error: error.message, count: 0, imageNames: [] };
+  }
+});
+
+ipcMain.handle('get-image-path', async (event, name, prompt, imageName) => {
+  try {
+    const imagePath = path.join(
+      __dirname,
+      '..',
+      'server',
+      'app_backend',
+      'generate',
+      'output',
+      name,
+      prompt,
+      imageName
+    );
+    
+    if (!fs.existsSync(imagePath)) {
+      return { success: false, error: 'Image not found' };
+    }
+    
+    return { success: true, path: imagePath };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 });
 
