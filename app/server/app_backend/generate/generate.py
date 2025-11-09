@@ -36,13 +36,18 @@ def generate(
             f.flush()
         
         try:
+            if torch.cuda.is_available():
+                device = "cuda"
+            else:
+                device = "cpu"
+            
             log("Loading pipeline")
  
             pipe = DiffusionPipeline.from_pretrained(
                 "stabilityai/stable-diffusion-xl-base-1.0",
                 torch_dtype=torch.float16
             )
-            pipe.to("cuda")
+            pipe.to(device)
  
             log("Loading LoRA weights")
  
@@ -72,4 +77,5 @@ def generate(
             log(f"Complete Generation For '{name}'")
 
         except Exception as e:
+            shutil.copy2(LOG_FILE, backup_log)
             log(f"Failed Generation For '{name}': {e}")
