@@ -182,7 +182,7 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
 
                 const trainingConfig: Record<string, any> = {
                     name: projectName,
-                    prompt: className,
+                    prompt: prompt,
                     dataset_path: nodePath.join(
                         baseDir,
                         "dataset",
@@ -204,10 +204,12 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             const generateConfigs = rowsWithFiles.map((row) => {
                 const className = sanitizePathSegment(row.className.trim());
                 const projectName = "UROP Soldering Generator"
+                const noSpaces = className.replace(/\s+/g, '_');
+                const prompt = `<${noSpaces}>`;
 
                 const generationConfig: Record<string, any> = {
                     name: projectName,
-                    prompt: className,
+                    prompt: prompt,
                 };
 
                 for (const [key, value] of Object.entries(config)) {
