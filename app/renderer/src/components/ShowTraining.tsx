@@ -82,12 +82,24 @@ function ShowTraining(){
 
                     if (parsed.isComplete) {
                         console.log('Class Training Completed!');
-                        setCompletedClasses(prev => prev + 1);
+                        setCompletedClasses(prev => {
+                            const newCount = prev + 1;
+                            console.log(`Completed ${newCount}/${totalClasses} classes`);
 
-                        const electron = window.require('electron') as any;
-                        const { ipcRenderer } = electron;
-                        await ipcRenderer.invoke('clear-training-log');
-                        console.log('Log file cleared, ready for next class');
+                            if (newCount >= totalClasses) {
+                                console.log('All training completed!')
+                                return newCount;
+                            }
+
+                            return newCount;
+                        });
+
+                        if (completedClasses + 1 < totalClasses) {
+                            const electron = window.require('electron') as any;
+                            const { ipcRenderer } = electron;
+                            await ipcRenderer.invoke('clear-training-log');
+                            console.log('Log file cleared, ready for next class');
+                        }
                     }
                 }
 
@@ -191,19 +203,25 @@ function ShowTraining(){
         <div className="show-training">
             <h2> Training Progress</h2>
 
-            {totalClasses > 0 && (
+            {totalClasses > 0 && completedClasses < totalClasses && (
                 <div className="show-training__class-counter">
-                    Training Class: {completedClasses + 1} / {totalClasses}
-                    {completedClasses > 0 && (
-                        <span className="show-training__completed-baded">
-                            ({completedClasses} completed)
-                        </span>
-                    )}
-
+                    Trained: {completedClasses} / {totalClasses} classes
                 </div>
             )}
 
-            {error && (
+            {totalClasses > 0 && completedClasses >= totalClasses && (
+                <div className="show-training__class-counter show-training__class-counter--complete">
+                    ✓ Training Completed - Proceed to Generate
+                </div>
+            )}
+
+            {error && error.includes('File is empty') && completedClasses < totalClasses && (
+                <div className="show-training__info">
+                    Training completed for class {completedClasses}. Moving on to next class...
+                </div>
+            )}
+
+            {error && !error.includes('File is empty') && (
                 <div className="show-training__error"> 
                     {error}
                 </div>
@@ -215,13 +233,19 @@ function ShowTraining(){
                 </div>
             )}
 
+            {!trainingState && !error && completedClasses < totalClasses && (
+                <div className="show-training__empty">
+                    Waiting for training to start...
+                </div>
+            )}
+
             {!trainingState && !error && (
                 <div className="show-training__empty">
                     Waiting for training to start...
                 </div>
             )}
 
-            {trainingState && (
+            {trainingState && completedClasses < totalClasses && (
 
                 <>
                     <div className="show-training__progress">
