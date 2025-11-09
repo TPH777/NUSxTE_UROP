@@ -1,0 +1,40 @@
+{
+  "train": [
+    {
+      "name": "UROP Soldering Generator",
+      "prompt": "testing",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\testing",
+      "batch_size": 4,
+      "learning_rate": 0.001,
+      "epochs": 10,
+      "resolution": 512,
+      "memory_efficient": false
+    },
+    {
+      "name": "UROP Soldering Generator",
+      "prompt": "testing1",
+      "dataset_path": "C:\\Users\\nigel\\NUSxTE_UROP\\app\\dataset\\train\\testing1",
+      "batch_size": 4,
+      "learning_rate": 0.001,
+      "epochs": 10,
+      "resolution": 512,
+      "memory_efficient": false
+    }
+  ],
+  "generate": [
+    {
+      "name": "testing",
+      "num_samples": 10,
+      "resolution": 512,
+      "num_inference_steps": 50,
+      "guidance_scale": 7.5
+    },
+    {
+      "name": "testing1",
+      "num_samples": 10,
+      "resolution": 512,
+      "num_inference_steps": 50,
+      "guidance_scale": 7.5
+    }
+  ]
+}

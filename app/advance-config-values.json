@@ -9,7 +9,6 @@
   "resolution": 512,
   "memory_efficient": false,
   "num_samples": 10,
-  "prompt": "",
   "gen_resolution": 512,
   "num_inference_steps": 50,
   "guidance_scale": 7.5

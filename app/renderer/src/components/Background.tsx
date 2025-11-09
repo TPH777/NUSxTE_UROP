@@ -1,7 +1,6 @@
 import "./Background.css";
 import logo from "../assets/Logo.png";
 import { useNavigate } from 'react-router-dom';
-import type React from "react";
 import { useState } from "react";
 function Background() {
 

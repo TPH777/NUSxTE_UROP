@@ -1,5 +1,6 @@
-import {useState, useEffect} from 'react';
+import {useContext, useEffect} from 'react';
 import './ShowTraining.css'
+import { QueueContext } from '../context/QueueContext';
 
 type TrainingState = {
     progress: number;
@@ -18,21 +19,35 @@ type TrainingState = {
     isComplete: boolean;
 }
 
+type ShowTrainingVar = {
+  trainingState: TrainingState | null,
+  setTrainingState: React.Dispatch<React.SetStateAction<TrainingState | null>>,
+  showDetailedStats: boolean,
+  setShowDetailedStats: React.Dispatch<React.SetStateAction<boolean>>,
+  lastUpdate: number,
+  setLastUpdate: React.Dispatch<React.SetStateAction<number>>,
+  isStale: boolean,
+  setIsStale: React.Dispatch<React.SetStateAction<boolean>>,
+  error: string | null,
+  setError: React.Dispatch<React.SetStateAction<string | null>>
+  completedClasses: number,
+  setCompletedClasses: React.Dispatch<React.SetStateAction<number>>,
+  totalClasses: number,
+  setTotalClasses: React.Dispatch<React.SetStateAction<number>>,
+}
+
 declare global {
     interface Window {
         require: ((module: string) => any) | undefined;
     }
 }
 
+const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingState, showDetailedStats, setShowDetailedStats,
+  lastUpdate, setLastUpdate, isStale, setIsStale, error, setError, completedClasses, 
+  setCompletedClasses, totalClasses, setTotalClasses
+} ) => {
 
-function ShowTraining(){
-    const [trainingState, setTrainingState] = useState<TrainingState | null>(null);
-    const [showDetailedStats, setShowDetailedStats] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
-    const [isStale, setIsStale] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [completedClasses, setCompletedClasses] = useState<number>(0);
-    const [totalClasses, setTotalClasses] = useState<number>(0);
+    const queueContext = useContext(QueueContext);
 
     useEffect(() => {
         
@@ -144,6 +159,7 @@ function ShowTraining(){
 
             if (completionPattern.test(line)) {
                 isComplete = true;
+                queueContext?.taskComplete("train");
                 console.log('Detected training completion:', line);
             }
 
