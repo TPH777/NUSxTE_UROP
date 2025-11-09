@@ -203,9 +203,11 @@ function TableInput({ initialRows = 1 }: TableInputProps) {
             // generation configs
             const generateConfigs = rowsWithFiles.map((row) => {
                 const className = sanitizePathSegment(row.className.trim());
+                const projectName = "UROP Soldering Generator"
 
                 const generationConfig: Record<string, any> = {
-                    name: className,
+                    name: projectName,
+                    prompt: className,
                 };
 
                 for (const [key, value] of Object.entries(config)) {

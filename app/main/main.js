@@ -58,25 +58,65 @@ ipcMain.handle('clear-training-log', async() => {
 
 ipcMain.handle('read-generate-queue', async () => {
   try {
-    const queuePath = path.join(__dirname, "..", "training-queue.json");
-
+    const queuePath = path.join(__dirname, '..', 'training-queue.json');
+    
+    console.log('Reading generate queue from:', queuePath); // Debug log
+    
     if (!fs.existsSync(queuePath)) {
-      return {success: false, error: 'Generate queue not found'};
+      return { success: false, error: 'Training queue not found' };
     }
-
+    
     const content = fs.readFileSync(queuePath, 'utf-8');
     const queue = JSON.parse(content);
-
-    return {
-      success: true,
-      totalClasses: queue.generate? queue.generate.length : 0
+    
+    console.log('Queue contents:', queue); // Debug log
+    
+    return { 
+      success: true, 
+      generateConfigs: queue.generate || []
     };
-
-  } catch(error) {
-    return {success: false, error: error.message};
+  } catch (error) {
+    console.error('Error reading generate queue:', error);
+    return { success: false, error: error.message };
   }
 });
 
+// Update the count-generated-images handler
+ipcMain.handle('count-generated-images', async (event, name, prompt) => {
+  try {
+    const outputPath = path.join(
+      __dirname, 
+      '..', 
+      'server', 
+      'app_backend', 
+      'generate', 
+      'output', 
+      name, 
+      prompt
+    );
+    
+    console.log('Checking for images at:', outputPath); // Debug log
+    
+    if (!fs.existsSync(outputPath)) {
+      return { success: true, count: 0, images: [] };
+    }
+    
+    const files = fs.readdirSync(outputPath);
+    // Get only .png files with full paths
+    const images = files
+      .filter(file => file.endsWith('.png'))
+      .map(file => path.join(outputPath, file));
+    
+    return { 
+      success: true, 
+      count: images.length,
+      images: images
+    };
+  } catch (error) {
+    console.error('Error counting images:', error);
+    return { success: false, error: error.message, count: 0, images: [] };
+  }
+});
 
 ipcMain.handle('read-generate-log', async () => {
   try {
