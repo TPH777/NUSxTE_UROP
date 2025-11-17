@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import './Generate.css';
+import { QueueContext } from '../context/QueueContext';
 
 declare global {
     interface Window {
@@ -36,6 +37,8 @@ function Generate() {
     const [hoveredImage, setHoveredImage] = useState<string | null>(null);
     const [hoveredImagePath, setHoveredImagePath] = useState<string | null>(null); // Add this
     const [expandedClasses, setExpandedClasses] = useState<Set<number>>(new Set());
+
+    const queueContext = useContext(QueueContext);
 
     console.log('Generate component state:', { isLoading, error, configsLength: generateConfigs.length });
 
@@ -87,6 +90,34 @@ function Generate() {
         };
 
         loadGenerateConfigs();
+
+        const readGenerateLog = async () => {
+            try {
+                // Use IPC to read file from main process
+                if (!window.require) return;
+        
+                const electron = window.require('electron') as any;
+                const { ipcRenderer } = electron;
+                const result = await ipcRenderer.invoke('read-generate-log');
+                
+                const content = result.content;
+                const lines = content.trim().split(/\r?\n/);
+                const lastLine = lines[lines.length - 1];
+
+                if (lastLine.includes("Complete Generation")) {
+                    await ipcRenderer.invoke('clear-generate-log');
+                    queueContext?.taskComplete("generate");
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        const intervalId = setInterval(readGenerateLog, 5000);
+        
+        return () => {
+            clearInterval(intervalId);
+        };
     }, []);
 
     // Poll for generated images

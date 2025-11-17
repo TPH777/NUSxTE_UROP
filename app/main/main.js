@@ -83,6 +83,36 @@ ipcMain.handle('read-generate-queue', async () => {
   }
 });
 
+ipcMain.handle('read-generate-log', async () => {
+  try {
+    const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'generate', 'generate.log');
+    
+    if (!fs.existsSync(logPath)) {
+      return { success: false, error: 'File not found' };
+    }
+    
+    const content = fs.readFileSync(logPath, 'utf-8');
+    if (!content || content.trim() === '') {
+      return { success: false, error: 'File is empty' };
+    }
+
+    return { success: true, content };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('clear-generate-log', async() => {
+  try {
+    const logPath = path.join(__dirname, '..', 'server', 'app_backend', 'generate', 'generate.log');
+    fs.writeFileSync(logPath, '', 'utf-8');
+    console.log('Generate log cleared');
+    return {success: true};
+  } catch (error) {
+    return {success: false, error: error.message};
+  }
+});
+
 ipcMain.handle('get-image-data', async (event, name, prompt, imageName) => {
   try {
     const imagePath = path.join(
