@@ -14,7 +14,7 @@ def new_training_job():
   dataset_path = params['dataset_path']
   batch_size = int(params['batch_size'])
   learning_rate = float(params['learning_rate'])
-  epochs = int(params['learning_rate'])
+  epochs = int(params['epochs'])
   resolution = int(params['resolution'])
   memory_efficient = params['memory_efficient']
   train_model(name, prompt, dataset_path, batch_size, learning_rate, epochs, resolution, memory_efficient)
@@ -26,12 +26,13 @@ def new_training_job():
 @app.route("/new_generate_job", methods=["POST"])
 def new_generate_job():
   params = request.json['params']
-  name = params.name
-  num_samples = params.num_samples
-  prompt = params.prompt
-  num_inference_steps = params.num_inference_steps
-  guidance_scale = params.guidance_scale
-  generate(name, num_samples, prompt, num_inference_steps, guidance_scale)
+  name = params['name']
+  num_samples = params['num_samples']
+  prompt = params['prompt']
+  resolution = params['resolution']
+  num_inference_steps = params['num_inference_steps']
+  guidance_scale = params['guidance_scale']
+  generate(name, num_samples, prompt, resolution, num_inference_steps, guidance_scale)
   return jsonify({
       'status': 'success',
       'message': 'Generate job started',
