@@ -243,11 +243,11 @@ const ShowTraining: React.FC<ShowTrainingVar> = ({trainingState, setTrainingStat
                 </div>
             )}
 
-            {isStale && trainingState && (
+            {/* {isStale && trainingState && (
                 <div className="show-training__warning">
                     Training appears to have stopped. Last update: {Math.floor((Date.now() - lastUpdate) / 1000)}s ago
                 </div>
-            )}
+            )} */}
 
             {!trainingState && !error && completedClasses < totalClasses && (
                 <div className="show-training__empty">
