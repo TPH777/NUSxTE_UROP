@@ -9,7 +9,7 @@
                 "min": 0,
                 "max": 1,
                 "step": 0.05,
-                "default": 0.7
+                "default": 1.0
             },
             {
                 "key": "testRatio",
@@ -18,7 +18,7 @@
                 "min": 0,
                 "max": 1,
                 "step": 0.05,
-                "default": 0.2
+                "default": 0.0
             },
             {
                 "key": "validRatio",
@@ -27,7 +27,7 @@
                 "min": 0,
                 "max": 1,
                 "step": 0.05,
-                "default": 0.1
+                "default": 0.0
             },
             {
                 "key": "splitRandomSeed",
