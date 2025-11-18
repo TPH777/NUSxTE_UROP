@@ -52,7 +52,8 @@ def generate(
                 "stabilityai/stable-diffusion-xl-base-1.0",
                 torch_dtype=dtype
             )
-            pipe.to(device)
+            # pipe.to(device)
+            pipe.enable_model_cpu_offload()
  
             log("Loading LoRA weights")
  
