@@ -289,9 +289,9 @@ function Generate() {
 
             {/* Per-Class Progress */}
             <div className="generate__classes">
-                <h3>Generation Progress by Class</h3>
+                {/* <h3>Generation Progress by Class</h3> */}
                 {classProgress.map((progress, index) => {
-                    const classProgress = progress.expected > 0
+                    const classProgressPercent = progress.expected > 0
                         ? Math.round((progress.generated / progress.expected) * 100)
                         : 0;
                     
@@ -320,7 +320,7 @@ function Generate() {
                             <div className="generate__progress-bar generate__progress-bar--small">
                                 <div 
                                     className="generate__progress-fill"
-                                    style={{ width: `${classProgress}%` }}
+                                    style={{ width: `${classProgressPercent}%` }}
                                 />
                             </div>
 

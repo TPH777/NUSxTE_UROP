@@ -10,6 +10,7 @@
 }
 
 .generate h3 {
+    margin-top: 0;
     margin-bottom: 1rem;
     color: #ffffff;
     font-size: 1.25rem;
@@ -93,15 +94,30 @@
     padding: 1.5rem;
     border-radius: 0.5rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    min-width: 550px;
+    box-sizing: border-box;
+}
+
+.generate__classes h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 
 .generate__class-item {
     padding: 1rem 0;
     border-bottom: 1px solid #e9ecef;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.generate__class-item:first-child {
+    padding-top: 0;
 }
 
 .generate__class-item:last-child {
     border-bottom: none;
+    padding-bottom: 0; 
 }
 
 .generate__class-header {
@@ -110,6 +126,8 @@
     align-items: center;
     margin-bottom: 0.5rem;
     user-select: none;
+    width: 100%;
+    box-sizing: border-box; 
 }
 
 .generate__class-header:hover {
@@ -125,12 +143,16 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    min-width: 0; 
+    flex: 1;
+    overflow: hidden; 
 }
 
 .generate__expand-icon {
     font-size: 0.75rem;
     color: #6c757d;
     transition: transform 0.2s;
+    flex-shrink: 0; 
 }
 
 .generate__class-count {
@@ -139,6 +161,9 @@
     gap: 0.5rem;
     color: #495057;
     font-family: 'Courier New', monospace;
+    flex-shrink: 0; 
+    white-space: nowrap; 
+    margin-left: auto; 
 }
 
 .generate__class-badge {
@@ -151,9 +176,10 @@
     color: white;
     border-radius: 50%;
     font-size: 0.75rem;
+    flex-shrink: 0; 
 }
 
-/* Image List - REPLACE gallery styles with these */
+/* Image List */
 .generate__image-list {
     margin-top: 1rem;
     padding: 1rem;
@@ -161,6 +187,8 @@
     border-radius: 0.5rem;
     max-height: 400px;
     overflow-y: auto;
+    width: 100%;
+    box-sizing: border-box; 
 }
 
 .generate__image-item {
@@ -174,6 +202,8 @@
     border: 1px solid #dee2e6;
     cursor: pointer;
     transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box; 
 }
 
 .generate__image-item:hover {
@@ -195,7 +225,11 @@
     font-family: 'Courier New', monospace;
     font-size: 0.875rem;
     color: #495057;
-    word-break: break-all;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    flex: 1;
+    min-width: 0; 
 }
 
 .generate__no-images {
