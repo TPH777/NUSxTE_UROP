@@ -70,3 +70,13 @@ Experimental scripts (independent of the toolkit):
 - `evaluation/` — other metric helpers (scripts computing FID, IS, LPIPS, etc.).
 - `utilities/` — small helper scripts
   - `metadata.py` — convenience function `generate_metadata_jsonl(root_dir)` that walks a dataset folder and creates `metadata.jsonl` in the dataset root. Important for Hugging Face Diffusers training.
+
+**Known issues & Stability**
+
+- This toolkit is an active research/codebase and may contain bugs or rough edges. Many core modules have been unit-tested and work in isolation. Some of the more essential modules are like
+
+  - `train_model()` in `app/server/app_backend/train/train.py`.
+  - `generate()` in `app/server/app_backend/generate/generate.py`
+  - `run_evaluation()` in `app/server/app_backend/evaluate/evaluate.py`
+
+- If you encounter unexpected behavior when using the full UI or end-to-end flows, consider running individual backend modules directly from Python or small driver scripts.
