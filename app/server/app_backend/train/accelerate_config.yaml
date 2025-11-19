@@ -14,4 +14,4 @@ same_network: true
 tpu_env: []
 tpu_use_cluster: false
 tpu_use_sudo: false
-use_cpu: true
+use_cpu: false
